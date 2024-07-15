@@ -1,0 +1,2 @@
+/home/rmartins/projects/aadc/build/CMakeFiles/rebuild_cache.dir
+/home/rmartins/projects/aadc/build/CMakeFiles/edit_cache.dir

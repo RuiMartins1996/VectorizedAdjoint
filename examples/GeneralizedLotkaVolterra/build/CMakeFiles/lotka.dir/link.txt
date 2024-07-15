@@ -1,0 +1,1 @@
+/usr/bin/c++  -mavx2 -Wno-ignored-attributes -rdynamic CMakeFiles/lotka.dir/main.cpp.o -o lotka  -Wl,-rpath,/home/rui/Desktop/VectorizedAdjoint/examples/GeneralizedLotkaVolterra/../../aadc/lib ../../../aadc/lib/libaadc.so 

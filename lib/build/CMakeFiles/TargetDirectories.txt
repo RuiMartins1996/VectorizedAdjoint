@@ -1,0 +1,6 @@
+/home/rui/Desktop/RungeKuttaBackPropagation/MyLib/build/CMakeFiles/edit_cache.dir
+/home/rui/Desktop/RungeKuttaBackPropagation/MyLib/build/CMakeFiles/rebuild_cache.dir
+/home/rui/Desktop/RungeKuttaBackPropagation/MyLib/build/CMakeFiles/list_install_components.dir
+/home/rui/Desktop/RungeKuttaBackPropagation/MyLib/build/CMakeFiles/install.dir
+/home/rui/Desktop/RungeKuttaBackPropagation/MyLib/build/CMakeFiles/install/local.dir
+/home/rui/Desktop/RungeKuttaBackPropagation/MyLib/build/CMakeFiles/install/strip.dir

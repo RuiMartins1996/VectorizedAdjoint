@@ -1,0 +1,148 @@
+#pragma once
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#if (__linux__ || __APPLE__)
+#include <sys/mman.h>
+#include <unistd.h>
+#endif
+
+#if defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 1300)
+#include <immintrin.h>
+#else
+	#include <stdint.h>
+	#ifdef _MSC_VER
+	#include <intrin.h>
+	#endif
+#endif
+
+namespace aadc {
+
+	struct MemInfo {
+		size_t pageSize;		// Virtual memory page size.
+		bool   cpu_AVX512;		// cpu supports AVX512
+	};
+
+#if defined(_WIN32)
+	struct osutils {
+		static int cpu_supports_avx512() {
+			return true; //  __builtin_cpu_supports("avx512f");
+		}
+
+		static const MemInfo& getMemInfo() // noexcept; no support in VS2012
+		{
+			static aadc::MemInfo vmi;
+			if (vmi.pageSize == 0) {
+				SYSTEM_INFO system_info;
+				GetSystemInfo(&system_info);
+				vmi.cpu_AVX512 = cpu_supports_avx512();
+				// set it last
+				vmi.pageSize   = system_info.dwPageSize;
+			}
+			return vmi;
+		};
+
+		static void* allocMem(size_t size)
+		{
+			SYSTEM_INFO system_info;
+			GetSystemInfo(&system_info);
+			auto page_size = system_info.dwPageSize;
+
+			if (page_size < size) {
+				auto pages = (__int32)floor(size / page_size) + 1;
+				page_size = pages * page_size;
+			}
+
+			auto const buffer = VirtualAlloc(nullptr, page_size, MEM_COMMIT, PAGE_READWRITE);
+			if (buffer == nullptr)
+				throw std::runtime_error("Not able to allocate memory");
+
+			return buffer;
+		}
+
+		static void  protectMem(void* p, size_t size)
+		{
+			// mark the memory as executable:
+			DWORD dummy;
+			VirtualProtect(p, size, PAGE_EXECUTE_READ, &dummy);
+		}
+		static void  releaseMem(void* p, size_t size)
+		{
+			// free the executable memory:
+			VirtualFree(p, 0, MEM_RELEASE);
+		}		
+
+		//! Get the current CPU tick count, used for benchmarking (1ms resolution).
+		static unsigned int getTickCount() // noexcept;
+		{
+			return 0;
+		}
+
+		// path separator
+		static char path_sep() {
+			return '\\';
+		}
+	};
+#endif
+
+#if (__linux__ || __APPLE__)
+	struct osutils {
+
+#if defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 1300)
+
+		static int cpu_supports_avx512()
+		{
+			return _may_i_use_cpu_feature(_FEATURE_AVX512F);// | _FEATURE_AVX512ER | _FEATURE_AVX512PF | _FEATURE_AVX512CD);
+		}
+#else 
+		static int cpu_supports_avx512() {
+			return true; //  __builtin_cpu_supports("avx512f");
+		}
+#endif
+
+		static const MemInfo& getMemInfo() // noexcept; no support in VS2012
+		{
+			static aadc::MemInfo vmi;
+			if (vmi.pageSize==0) {
+				size_t pageSize = ::getpagesize();
+				vmi.cpu_AVX512  = cpu_supports_avx512();
+				// set it last
+				vmi.pageSize    = pageSize;
+			}
+			return vmi;
+		};
+
+		static void* allocMem(size_t size)
+		{
+			int flags = PROT_READ | PROT_WRITE | PROT_EXEC;
+
+			void* mbase = ::mmap(nullptr, size, flags, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+			// todo: exception in case of error
+			if (mbase == nullptr) return nullptr;
+
+			return mbase;
+		}
+
+		static void  protectMem(void* p, size_t size) {
+			// nothing to do here on linux
+		}
+
+		static void  releaseMem(void* p, size_t size) {
+			::munmap(p, size);
+		}
+
+		//! Get the current CPU tick count, used for benchmarking (1ms resolution).
+		static unsigned int getTickCount() // noexcept;
+		{
+			return 0;
+		}
+		// path separator
+		static char path_sep() {
+			return '/';
+		}
+	};
+#endif
+
+
+} // namespace aadc
