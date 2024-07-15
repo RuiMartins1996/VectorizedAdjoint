@@ -8,6 +8,8 @@ VectorizedAdjoint is a C++ library that implements discrete adjoint sensitivity 
 VectorizedAdjoint leverages vectorization and automatic differentiation to accelerate the computations.
 VectorizedAdjoint has been tested with the gcc compiler.
 
+Structure:
+============================================================
 VectorizedAdjoint contains the following directory structure:
 
     VectorizedAdjoint/README        general instructions
@@ -15,11 +17,15 @@ VectorizedAdjoint contains the following directory structure:
     VectorizedAdjoint/examples      example programs
     VectorizedAdjoint/doc           user's guide (TODO!)
 
+Dependencies:
+============================================================
 VectorizedAdjoint implementation requires boot::numeric::odeint, a library for ordinary differential equation (ODE) solvers within the Boost C++ Libraries. To install boost on Ubuntu, do:
 
     sudo apt update
     sudo apt install libboost-all-dev
 
+Usage:
+============================================================
 For usage of VectorizedAdjoint, please refer to the user's guide, as well as the example programs containing drivers and makefiles which can be used as templates. 
 
 
