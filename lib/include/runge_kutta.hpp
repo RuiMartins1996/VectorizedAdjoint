@@ -143,6 +143,7 @@ size_t runge_kutta_detail(Stepper stepper, System system, State &start_state,
 
     p_driver->PushBackTime(start_time);
     p_driver->PushBackState(start_state);
+
     obs(start_state, start_state.size());
 
     return count;
@@ -169,13 +170,14 @@ size_t runge_kutta_detail(Stepper stepper, System system, State &start_state,
         obs(start_state, time);
         p_driver->PushBackTime(time);
         p_driver->PushBackState(start_state);
+
         st.do_step(system, start_state, time, dt);
         // direct computation of the time avoids error propagation happening when using time += dt
         // we need clumsy type analysis to get boost units working here
         ++step;
         time = start_time + static_cast<typename unit_value_type<Time>::type>(step) * dt;
     }
-    
+
     obs(start_state, time);
     p_driver->PushBackTime(time);
     p_driver->PushBackState(start_state);
