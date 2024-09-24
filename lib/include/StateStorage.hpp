@@ -1,18 +1,19 @@
-#ifndef STATE_STORAFE_NEW_HPP  // guard
+#ifndef STATE_STORAFE_NEW_HPP // guard
 #define STATE_STORAFE_NEW_HPP
 
-
-struct StateStorage {
-   private:
+struct StateStorage
+{
+  private:
     std::vector<double> time;
     std::vector<std::vector<double>> states;
 
-   public:
+  public:
     StateStorage() = default;
-    ~StateStorage() {
-        //std::cout << "Calling destructor for StateStorage" << std::endl;
+    ~StateStorage(){
+        // std::cout << "Calling destructor for StateStorage" << std::endl;
     };
-    void Clear() {
+    void Clear()
+    {
         time.clear();
         states.clear();
     }
@@ -20,19 +21,24 @@ struct StateStorage {
     double GetTime(const int n) const { return time[n]; };
     double GetDt(const int n) const { return time[n + 1] - time[n]; }
     template <typename Time>
-    void PushBackTime(const Time _time) {
+    void PushBackTime(const Time _time)
+    {
         time.push_back(static_cast<double>(_time));
     }
     template <typename State>
-    void PushBackState(State state) {
+    void PushBackState(State state)
+    {
         std::vector<double> state_push_back(state.size());
-        for (int i = 0; i < state.size(); i++) state_push_back[i] = state[i];
+        for (int i = 0; i < state.size(); i++)
+            state_push_back[i] = state[i];
         states.push_back(state_push_back);
     }
 
     template <class State>
-    void GetState(State &u, int n) const {
-        for (int i = 0; i < u.size(); i++) u[i] = states[n][i];
+    void GetState(State &u, int n) const
+    {
+        for (int i = 0; i < u.size(); i++)
+            u[i] = states[n][i];
     }
 };
 

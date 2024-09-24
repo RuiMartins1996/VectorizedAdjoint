@@ -1,24 +1,25 @@
-#include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <vector>
 
 // Boost includes
 #include <boost/numeric/odeint.hpp>
 
 // Filesystem and chrono includes
-#include <filesystem>
 #include <chrono>
+#include <filesystem>
 
 // MyLib includes
-#include "../../lib/include/backpropagation_detail.hpp"
+#include "../../lib/include/backpropagation.hpp"
 #include "../../lib/include/runge_kutta.hpp"
 
 using namespace boost::numeric::odeint;
 
 namespace fs = std::filesystem;
 
-fs::path getExecutablePath() {
+fs::path getExecutablePath()
+{
     // Initialize with a safe default relative to the executable
     fs::path result = fs::current_path();
 
@@ -34,20 +35,20 @@ fs::path getExecutablePath() {
     return result;
 }
 
-std::vector<double> readAlphasFromFile(int N) 
+std::vector<double> readAlphasFromFile(int N)
 {
     std::vector<double> alphas;
-    
 
     // Get the path to the directory containing the executable
     fs::path exePath = getExecutablePath();
 
     // Construct the full path to the target folder and file
-    fs::path targetFolder = exePath.parent_path() / "data" / ("N" + std::to_string(N));
+    fs::path targetFolder =
+        exePath.parent_path() / "data" / ("N" + std::to_string(N));
     fs::path filePath = targetFolder / "alphasfile_cpp.csv";
 
-    //std::string targetFolder = directory + "/N" + std::to_string(N);
-    //std::string filePath = targetFolder + "/alphasfile_cpp.csv";
+    // std::string targetFolder = directory + "/N" + std::to_string(N);
+    // std::string filePath = targetFolder + "/alphasfile_cpp.csv";
 
     // Check if the target folder exists
     if (!fs::exists(targetFolder) || !fs::is_directory(targetFolder)) {
@@ -76,9 +77,9 @@ std::vector<double> readAlphasFromFile(int N)
         while (std::getline(ss, value, ',')) {
             try {
                 alphas.push_back(std::stod(value));
-            } catch (const std::invalid_argument& e) {
+            } catch (const std::invalid_argument &e) {
                 std::cerr << "Invalid value found in file: " << value << std::endl;
-            } catch (const std::out_of_range& e) {
+            } catch (const std::out_of_range &e) {
                 std::cerr << "Value out of range in file: " << value << std::endl;
             }
         }
@@ -99,7 +100,7 @@ typedef runge_kutta_cash_karp54<std::vector<idouble>> i_error_stepper_type;
 template <typename T>
 class LotkaVolterra
 {
-public:
+  public:
     LotkaVolterra() = default;
 
     // Overload operator() to define the rhs of the system of ODEs
@@ -108,11 +109,9 @@ public:
     {
         int N = x.size();
 
-        for (int i = 0; i < x.size(); i++)
-        {
+        for (int i = 0; i < x.size(); i++) {
             T sum = 0.0;
-            for (int j = 0; j < x.size(); j++)
-            {
+            for (int j = 0; j < x.size(); j++) {
                 int id = N * (i + 1) + j;
                 sum += parameters[id] * x[j];
             }
@@ -121,9 +120,8 @@ public:
     }
 };
 
-
-int main(int argc, char* argv[]) {
-
+int main(int argc, char *argv[])
+{
     // Check if the correct number of arguments is provided
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0] << " <tolerance> <N>" << std::endl;
@@ -135,12 +133,12 @@ int main(int argc, char* argv[]) {
     int N;
 
     try {
-        tol = std::stod(argv[1]);  // Convert tolerance to double
-        N = std::stoi(argv[2]);    // Convert N to int
-    } catch (const std::invalid_argument& e) {
+        tol = std::stod(argv[1]); // Convert tolerance to double
+        N = std::stoi(argv[2]);   // Convert N to int
+    } catch (const std::invalid_argument &e) {
         std::cerr << "Invalid argument: " << e.what() << std::endl;
         return 1;
-    } catch (const std::out_of_range& e) {
+    } catch (const std::out_of_range &e) {
         std::cerr << "Argument out of range: " << e.what() << std::endl;
         return 1;
     }
@@ -152,20 +150,14 @@ int main(int argc, char* argv[]) {
     LotkaVolterra<double> lotkaVolterra;
 
     std::vector<double> x0(N);
-    for(int i = 0; i < N; i++) x0[i] = 0.1;
+    for (int i = 0; i < N; i++)
+        x0[i] = 0.1;
     std::vector<double> dxdt(N);
-    
-    // Number of parameters
-    int Npar = N*N+N;
 
+    // Number of parameters
+    int Npar = N * N + N;
 
     std::vector<double> alphas = readAlphasFromFile(N);
-
-    /*
-    std::cout << "Initial conditions: x0 = [";
-    for(int i = 0; i < N; i++) std::cout << x0[i] << ", ";
-    std::cout << "]" << std::endl;
-    */
 
     i_error_stepper_type rk;
 
@@ -178,24 +170,23 @@ int main(int argc, char* argv[]) {
     // Create a stepper object
     stepper_type stepper;
 
-    void *driver_handle = new Driver(stepper, LotkaVolterra<idouble>(), N, N, Npar, x0);
+    void *driver_handle =
+        new Driver(stepper, LotkaVolterra<idouble>(), N, N, Npar, x0);
 
     auto trki = std::chrono::high_resolution_clock::now();
     runge_kutta(
         boost::numeric::odeint::make_controlled<stepper_type>(AbsTol, RelTol),
-        LotkaVolterra<double>(),
-        x0, alphas, ti, tf, dt,driver_handle);
-    
+        LotkaVolterra<double>(), x0, alphas, ti, tf, dt, driver_handle);
+
     auto trkf = std::chrono::high_resolution_clock::now();
 
     auto start = std::chrono::time_point_cast<std::chrono::microseconds>(trki).time_since_epoch().count();
     auto end = std::chrono::time_point_cast<std::chrono::microseconds>(trkf).time_since_epoch().count();
 
     auto times_microseconds_rk = end - start;
-    
+
     auto tadji = std::chrono::high_resolution_clock::now();
-    ublas::matrix<double> J = 
-        backpropagation::detail::compute_jacobian(driver_handle, alphas);
+    ublas::matrix<double> J = backpropagation::compute_jacobian(driver_handle, alphas);
     auto tadjf = std::chrono::high_resolution_clock::now();
 
     start = std::chrono::time_point_cast<std::chrono::microseconds>(tadji).time_since_epoch().count();
@@ -203,10 +194,10 @@ int main(int argc, char* argv[]) {
 
     auto times_microseconds_adj = end - start;
 
-
     std::vector<double> muAdjoints(N * Npar);
     for (int i = 0; i < N; i++) {
-        for (int k = 0;k<Npar;k++) muAdjoints[i*Npar+k] = J(i,k);
+        for (int k = 0; k < Npar; k++)
+            muAdjoints[i * Npar + k] = J(i, k);
     }
 
     std::cout << "Time forward integration: " << times_microseconds_rk << " microseconds" << std::endl;
@@ -214,4 +205,3 @@ int main(int argc, char* argv[]) {
 
     return EXIT_SUCCESS;
 }
-
