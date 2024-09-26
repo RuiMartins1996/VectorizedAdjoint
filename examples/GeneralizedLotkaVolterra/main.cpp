@@ -97,13 +97,14 @@ typedef odeint::runge_kutta_cash_karp54<state_type> stepper_type;
 typedef runge_kutta_cash_karp54<std::vector<idouble>> i_error_stepper_type;
 
 // System function for the Generalized Lotka Volterra system of ODEs
-template <typename T>
+
 class LotkaVolterra
 {
   public:
     LotkaVolterra() = default;
 
     // Overload operator() to define the rhs of the system of ODEs
+    template <typename T>
     void operator()(const std::vector<T> &x, std::vector<T> &dxdt,
                     const std::vector<T> &parameters, T t)
     {
@@ -147,7 +148,7 @@ int main(int argc, char *argv[])
     std::cout << "Tolerance: " << tol << std::endl;
     std::cout << "N: " << N << std::endl;
 
-    LotkaVolterra<double> lotkaVolterra;
+    LotkaVolterra lotka;
 
     std::vector<double> x0(N);
     for (int i = 0; i < N; i++)
@@ -170,13 +171,11 @@ int main(int argc, char *argv[])
     // Create a stepper object
     stepper_type stepper;
 
-    void *driver_handle =
-        new Driver(stepper, LotkaVolterra<idouble>(), N, N, Npar, x0);
+    Driver driver(N, N, Npar);
 
     auto trki = std::chrono::high_resolution_clock::now();
     runge_kutta(
-        boost::numeric::odeint::make_controlled<stepper_type>(AbsTol, RelTol),
-        LotkaVolterra<double>(), x0, alphas, ti, tf, dt, driver_handle);
+        boost::numeric::odeint::make_controlled<stepper_type>(AbsTol, RelTol), lotka, x0, alphas, ti, tf, dt, driver);
 
     auto trkf = std::chrono::high_resolution_clock::now();
 
@@ -185,8 +184,40 @@ int main(int argc, char *argv[])
 
     auto times_microseconds_rk = end - start;
 
+    /*
+    auto lambda = std::vector(N, std::vector<double>(N));
+    auto muDerivative = std::vector(N, std::vector<double>(Npar));
+
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (i == j) {
+                lambda[i][j] = 1.0;
+            } else {
+                lambda[i][j] = 0.0;
+            }
+        }
+
+        for (int k = 0; k < Npar; k++)
+            muDerivative[i][k] = 0.0;
+    }
+
+    // Inform driver of stepper butcher tableau, needed for reverse pass
+    constructDriverButcherTableau(driver, stepper);
+    // Record RHS function with automatic differentiation
+    recordDriverRHSFunction(driver, lotka);
+    // Set derivatives of cost functions w.r.t ODE solution and w.r.t. parameters
+    setCostGradients(driver, lambda, muDerivative);
+    // Reverse pass to obtain the adjoints of the cost functions
+    backpropagation::adjointSolve(driver, alphas);
+    */
+
+    // Inform driver of stepper butcher tableau, needed for reverse pass
+    constructDriverButcherTableau(driver, stepper);
+    // Record RHS function with automatic differentiation
+    recordDriverRHSFunction(driver, lotka);
+
     auto tadji = std::chrono::high_resolution_clock::now();
-    ublas::matrix<double> J = backpropagation::compute_jacobian(driver_handle, alphas);
+    auto J = backpropagation::computeSensitivityMatrix(driver, alphas);
     auto tadjf = std::chrono::high_resolution_clock::now();
 
     start = std::chrono::time_point_cast<std::chrono::microseconds>(tadji).time_since_epoch().count();
@@ -197,7 +228,7 @@ int main(int argc, char *argv[])
     std::vector<double> muAdjoints(N * Npar);
     for (int i = 0; i < N; i++) {
         for (int k = 0; k < Npar; k++)
-            muAdjoints[i * Npar + k] = J(i, k);
+            muAdjoints[i * Npar + k] = J[i][k];
     }
 
     std::cout << "Time forward integration: " << times_microseconds_rk << " microseconds" << std::endl;

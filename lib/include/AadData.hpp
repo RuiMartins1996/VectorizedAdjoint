@@ -12,7 +12,24 @@
 namespace ublas = boost::numeric::ublas;
 typedef __m256d mmType;
 
-// TODO: This class needs to spawn several workspaces to allow parallelization
+// This class should receive a templated system functor as input and implement operator() to work on state types made from idouble
+template <class System, class State, class Time>
+class SystemFunctionButIDouble
+{
+  private:
+    System system;
+    State parameters;
+
+  public:
+    SystemFunctionButIDouble(System _system, State _parameters) : system(_system), parameters(_parameters){};
+
+    void operator()(const State &u, State &dudt, const Time &t)
+    {
+        this->system(u, dudt, parameters, t);
+    };
+};
+
+// TODO: This class needs to spawn several workspaces to allow multi-threading
 
 // template < class Stepper,class System, class State , class Time>
 class AadData

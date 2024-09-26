@@ -15,7 +15,8 @@
 
 // #include "OdeDriver.hpp"
 #include "Driver.hpp"
-#include "utilities.hpp"
+
+using namespace lib;
 
 namespace backpropagation
 {
@@ -23,16 +24,16 @@ namespace detail
 {
 
 template <class State, class Time>
-ublas::matrix<double> compute_intermediate_states(Driver *p_driver, int Nin, const State &alphas, const Time time, const Time dt, int n)
+ublas::matrix<double> compute_intermediate_states(Driver &driver, int Nin, const State &alphas, const Time time, const Time dt, int n)
 {
-    int s = p_driver->p_butcher->GetStages();
+    int s = driver.p_butcher->GetStages();
 
     ublas::matrix<double> K_vectors(Nin, s + 1);
     State dxdt(Nin);
 
     State u(Nin);
 
-    p_driver->GetState(u, n);
+    driver.GetState(u, n);
 
     for (int m = 0; m < s; m++) {
         // Get intermediate state x^{m,n}
@@ -42,11 +43,11 @@ ublas::matrix<double> compute_intermediate_states(Driver *p_driver, int Nin, con
 
         for (int j = 0; j < m; j++)
             for (int i = 0; i < Nin; i++)
-                xmn[i] += dt * p_driver->p_butcher->a(m, j) * K_vectors(i, j);
+                xmn[i] += dt * driver.p_butcher->a(m, j) * K_vectors(i, j);
 
         State dxdt(Nin);
 
-        p_driver->Rhs(xmn, dxdt, alphas, time);
+        driver.Rhs(xmn, dxdt, alphas, time);
 
         for (int i = 0; i < Nin; i++)
             K_vectors(i, m) = dxdt[i];
@@ -57,7 +58,7 @@ ublas::matrix<double> compute_intermediate_states(Driver *p_driver, int Nin, con
     for (int i = 0; i < Nin; i++) {
         dudt[i] = 0.0;
         for (int j = 0; j < s; j++)
-            dudt[i] += p_driver->p_butcher->b(j) * K_vectors(i, j);
+            dudt[i] += driver.p_butcher->b(j) * K_vectors(i, j);
         K_vectors(i, s) = u[i] + dt * dudt[i];
     };
 
@@ -65,7 +66,7 @@ ublas::matrix<double> compute_intermediate_states(Driver *p_driver, int Nin, con
 };
 
 template <class State, class Time>
-State get_intermediate_state(Driver *p_driver, const State &u, const ublas::matrix<double> &K_vectors_n, const Time dt, const int m, const int n)
+State get_intermediate_state(Driver &driver, const State &u, const ublas::matrix<double> &K_vectors_n, const Time dt, const int m, const int n)
 {
     int Nin = K_vectors_n.size1();
 
@@ -75,22 +76,22 @@ State get_intermediate_state(Driver *p_driver, const State &u, const ublas::matr
     //(k=1...m)
     for (int k = 1; k < m; k++) {
         for (int i = 0; i < Nin; i++)
-            u_mn[i] += dt * p_driver->p_butcher->a(m - 1, k - 1) * K_vectors_n(i, k - 1);
+            u_mn[i] += dt * driver.p_butcher->a(m - 1, k - 1) * K_vectors_n(i, k - 1);
     }
 
     return u_mn;
 }
 
 template <class State>
-void back_prop_step(Driver *p_driver, aadc::mmVector<mmType> &wbarend, aadc::mmVector<mmType> &alphabar, const State &alphas, int n)
+void back_prop_step(Driver &driver, aadc::mmVector<mmType> &wbarend, aadc::mmVector<mmType> &alphabar, const State &alphas, int n)
 {
     int Nin = wbarend.size();
     int Npar = alphas.size();
 
-    double time = p_driver->GetTime(n);
-    double dt = p_driver->GetDt(n);
+    double time = driver.GetTime(n);
+    double dt = driver.GetDt(n);
 
-    int s = p_driver->p_butcher->GetStages();
+    int s = driver.p_butcher->GetStages();
 
     // Initialize w_bar_n
     std::vector<aadc::mmVector<mmType>> w_bar_n(s + 2);
@@ -108,7 +109,7 @@ void back_prop_step(Driver *p_driver, aadc::mmVector<mmType> &wbarend, aadc::mmV
     for (int i = 0; i < Nin; i++) {
         w_bar_n[0][i] = aadc::mmAdd(w_bar_n[0][i], w_bar_n[s + 1][i]);
         for (int m = 1; m < s + 1; m++) {
-            w_bar_n[m][i] = aadc::mmAdd(w_bar_n[m][i], p_driver->p_butcher->b(m - 1) * dt * w_bar_n[s + 1][i]);
+            w_bar_n[m][i] = aadc::mmAdd(w_bar_n[m][i], driver.p_butcher->b(m - 1) * dt * w_bar_n[s + 1][i]);
         }
     }
 
@@ -119,30 +120,30 @@ void back_prop_step(Driver *p_driver, aadc::mmVector<mmType> &wbarend, aadc::mmV
 
     // Get u(t^n)
     State u(Nin);
-    p_driver->GetState(u, n);
+    driver.GetState(u, n);
     // And recompute this step
-    ublas::matrix<double> K_vectors_n = compute_intermediate_states(p_driver, Nin, alphas, time, dt, n);
+    ublas::matrix<double> K_vectors_n = compute_intermediate_states(driver, Nin, alphas, time, dt, n);
 
     // Steps s to 1
     for (int m = s; m > 0; m--) {
-        double time_m_n = time + p_driver->p_butcher->c(m) * dt;
+        double time_m_n = time + driver.p_butcher->c(m) * dt;
 
         //* Get the mth intermediate x^mn state and F derivatives
-        wk = get_intermediate_state(p_driver, u, K_vectors_n, dt, m, n);
+        wk = get_intermediate_state(driver, u, K_vectors_n, dt, m, n);
 
         //* Get values of (m)th adjoint on temporary matrix
         for (int i = 0; i < Nin; i++)
             w_bar_m_n[i] = w_bar_n[m][i];
 
         //* Do vector times Jacobian multiplication (vA) for state and
-        p_driver->p_aad_data->VectorTimesJacobians(w_bar_m_n, wk, alphas, time_m_n, wJx, wJalpha);
+        driver.p_aad_data->VectorTimesJacobians(w_bar_m_n, wk, alphas, time_m_n, wJx, wJalpha);
         //* Update adjoints of order 0...m-1
         for (int i = 0; i < Nin; i++) {
             // Update m=0 adjoint
             w_bar_n[0][i] = aadc::mmAdd(w_bar_n[0][i], wJx[i]);
             // Update kth<mth adjoint
             for (int k = 1; k < m; k++) {
-                w_bar_n[k][i] = aadc::mmAdd(w_bar_n[k][i], wJx[i] * p_driver->p_butcher->a(m - 1, k - 1) * dt);
+                w_bar_n[k][i] = aadc::mmAdd(w_bar_n[k][i], wJx[i] * driver.p_butcher->a(m - 1, k - 1) * dt);
             }
         };
 
@@ -159,15 +160,15 @@ void back_prop_step(Driver *p_driver, aadc::mmVector<mmType> &wbarend, aadc::mmV
 }
 
 template <class State>
-void back_prop_step(Driver *p_driver, State &wbarend, State &alphabar, const State &alphas, int n)
+void back_prop_step(Driver &driver, State &wbarend, State &alphabar, const State &alphas, int n)
 {
     int Nin = wbarend.size();
     int Npar = alphas.size();
 
-    double time = p_driver->GetTime(n);
-    double dt = p_driver->GetDt(n);
+    double time = driver.GetTime(n);
+    double dt = driver.GetDt(n);
 
-    int s = p_driver->p_butcher->GetStages();
+    int s = driver.p_butcher->GetStages();
     // Initialize w_bar_n
     ublas::matrix<double> w_bar_n(Nin, s + 2);
     for (int i = 0; i < Nin; i++)
@@ -180,7 +181,7 @@ void back_prop_step(Driver *p_driver, State &wbarend, State &alphabar, const Sta
     for (int i = 0; i < Nin; i++) {
         w_bar_n(i, 0) += w_bar_n(i, s + 1);
         for (int m = 1; m < s + 1; m++) {
-            w_bar_n(i, m) += p_driver->p_butcher->b(m - 1) * dt * w_bar_n(i, s + 1);
+            w_bar_n(i, m) += driver.p_butcher->b(m - 1) * dt * w_bar_n(i, s + 1);
         }
     }
     std::vector<double> wk(Nin);
@@ -190,15 +191,15 @@ void back_prop_step(Driver *p_driver, State &wbarend, State &alphabar, const Sta
 
     // Get u(t^n)
     State u(Nin);
-    p_driver->GetState(u, n);
+    driver.GetState(u, n);
     // And recompute this step
-    ublas::matrix<double> K_vectors_n = compute_intermediate_states(p_driver, Nin, alphas, time, dt, n);
+    ublas::matrix<double> K_vectors_n = compute_intermediate_states(driver, Nin, alphas, time, dt, n);
     // Steps s to 1
     for (int m = s; m > 0; m--) {
-        double time_m_n = time + p_driver->p_butcher->c(m) * dt;
+        double time_m_n = time + driver.p_butcher->c(m) * dt;
 
         //* Get the mth intermediate x^mn state and F derivatives
-        wk = get_intermediate_state(p_driver, u, K_vectors_n, dt, m, n);
+        wk = get_intermediate_state(driver, u, K_vectors_n, dt, m, n);
 
         //* Get values of (m)th adjoint on temporary matrix
         for (int i = 0; i < Nin; i++)
@@ -207,10 +208,10 @@ void back_prop_step(Driver *p_driver, State &wbarend, State &alphabar, const Sta
         //* Do vector times Jacobian multiplication (vA) for state and
         // parameter Jacobians
 
-        // vector_times_jacobian(p_driver,w_bar_m_vec, wk, alphas,
+        // vector_times_jacobian(driver,w_bar_m_vec, wk, alphas,
         //                                           time, wJx, wJalpha);
 
-        p_driver->p_aad_data->VectorTimesJacobians(w_bar_m_vec, wk, alphas, time_m_n, wJx, wJalpha);
+        driver.p_aad_data->VectorTimesJacobians(w_bar_m_vec, wk, alphas, time_m_n, wJx, wJalpha);
 
         //(lldb) breakpoint set --name breakpoint --condition 'time < 0.01' ;
 
@@ -220,7 +221,7 @@ void back_prop_step(Driver *p_driver, State &wbarend, State &alphabar, const Sta
             w_bar_n(i, 0) += wJx[i];
             // Update kth<mth adjoint
             for (int k = 1; k < m; k++) {
-                w_bar_n(i, k) += wJx[i] * p_driver->p_butcher->a(m - 1, k - 1) * dt;
+                w_bar_n(i, k) += wJx[i] * driver.p_butcher->a(m - 1, k - 1) * dt;
             }
         };
 
@@ -237,9 +238,9 @@ void back_prop_step(Driver *p_driver, State &wbarend, State &alphabar, const Sta
 }
 
 template <class State, class Observer>
-aadc::mmVector<mmType> back_prop(Driver *p_driver, aadc::mmVector<mmType> &wbarend, const State &alphas, Observer observer)
+aadc::mmVector<mmType> back_prop(Driver &driver, aadc::mmVector<mmType> &wbarend, const State &alphas, Observer observer)
 {
-    int num_time_steps = p_driver->GetT() - 1;
+    int num_time_steps = driver.GetT() - 1;
     int Npar = alphas.size();
 
     // Initliaze alphabar;
@@ -247,14 +248,14 @@ aadc::mmVector<mmType> back_prop(Driver *p_driver, aadc::mmVector<mmType> &wbare
     for (int k = 0; k < alphabar.size(); k++)
         alphabar[k] = aadc::mmZero<mmType>();
 
-    double time = p_driver->GetTime(num_time_steps);
+    double time = driver.GetTime(num_time_steps);
     observer(wbarend, time);
 
     //(iteration n=T-1 to n=1)
     for (int n = num_time_steps - 1; n > -1; n--) {
-        back_prop_step(p_driver, wbarend, alphabar, alphas, n);
+        back_prop_step(driver, wbarend, alphabar, alphas, n);
 
-        time = p_driver->GetTime(n);
+        time = driver.GetTime(n);
         observer(wbarend, time);
     }
 
@@ -262,9 +263,9 @@ aadc::mmVector<mmType> back_prop(Driver *p_driver, aadc::mmVector<mmType> &wbare
 };
 
 template <class State, class Observer>
-State back_prop(Driver *p_driver, State &wbarend, const State &alphas, Observer observer)
+State back_prop(Driver &driver, State &wbarend, const State &alphas, Observer observer)
 {
-    int num_time_steps = p_driver->GetT() - 1;
+    int num_time_steps = driver.GetT() - 1;
     int Npar = alphas.size();
 
     // Initliaze alphabar;
@@ -272,40 +273,57 @@ State back_prop(Driver *p_driver, State &wbarend, const State &alphas, Observer 
     for (int k = 0; k < alphabar.size(); k++)
         alphabar[k] = 0.0;
 
-    double time = p_driver->GetTime(num_time_steps);
+    double time = driver.GetTime(num_time_steps);
     observer(wbarend, time);
     //(iteration n=T-1 to n=1)
     for (int n = num_time_steps - 1; n > -1; n--) {
-        back_prop_step(p_driver, wbarend, alphabar, alphas, n);
+        back_prop_step(driver, wbarend, alphabar, alphas, n);
 
-        time = p_driver->GetTime(n);
+        time = driver.GetTime(n);
         observer(wbarend, time);
     }
 
     return alphabar;
 };
 
+/*
 template <class State>
-State backpropagation(void *driver, State &wbarend, const State &parameters)
+State backpropagation(Driver &driver, State &wbarend, const State &parameters)
 {
-    Driver *p_driver = static_cast<Driver *>(driver);
-    return back_prop(p_driver, wbarend, parameters, boost::numeric::odeint::null_observer());
+    return back_prop(driver, wbarend, parameters, boost::numeric::odeint::null_observer());
 };
 
 template <class State, class Observer>
-State backpropagation(void *driver, State &wbarend, const State &parameters, Observer observer)
+State backpropagation(Driver &driver, State &wbarend, const State &parameters, Observer observer)
 {
-    Driver *p_driver = static_cast<Driver *>(driver);
-    return back_prop(p_driver, wbarend, parameters, observer);
+    return back_prop(driver, wbarend, parameters, observer);
 };
+*/
 
 template <class State>
-std::vector<std::vector<double>> backpropagation(void *driver, const State &parameters)
+void adjointSolve(Driver &driver, const State &parameters)
 {
-    Driver *p_driver = static_cast<Driver *>(driver);
+    int Nout = driver.GetNout();
+    int Npar = driver.GetNpar();
 
-    int Nin = p_driver->GetNin();
-    int Npar = p_driver->GetNpar();
+    for (int i = 0; i < Nout; i++) {
+
+        std::vector<double> &lambda_i = (*driver.p_lambda)[i];
+        std::vector<double> &mu_i = (*driver.p_mu)[i];
+
+        State alphabar = back_prop(driver, lambda_i, parameters, boost::numeric::odeint::null_observer());
+
+        for (int k = 0; k < Npar; k++)
+            mu_i[k] += alphabar[k];
+    }
+};
+
+// This function handles the computation of the sensitivity matrix of the ODE system WITHOUT leveraging SIMD vectorization
+template <class State>
+auto computeSensitivityMatrixNoSIMD(Driver &driver, const State &parameters)
+{
+    int Nin = driver.GetNin();
+    int Npar = driver.GetNpar();
 
     std::vector<std::vector<double>> adjoints(Nin, std::vector<double>(Npar, 0.0));
 
@@ -313,7 +331,7 @@ std::vector<std::vector<double>> backpropagation(void *driver, const State &para
         State wbarend(Nin, 0.0);
         wbarend[i] = 1.0;
 
-        State alphabar = back_prop(p_driver, wbarend, parameters, boost::numeric::odeint::null_observer());
+        State alphabar = back_prop(driver, wbarend, parameters, boost::numeric::odeint::null_observer());
         for (int j = 0; j < alphabar.size(); j++)
             adjoints[i][j] = alphabar[j];
     }
@@ -321,15 +339,14 @@ std::vector<std::vector<double>> backpropagation(void *driver, const State &para
     return adjoints;
 };
 
+// This function handles the computation of the sensitivity matrix of the ODE system leveraging SIMD vectorization
 template <class State>
-ublas::matrix<double> compute_jacobian(void *driver, const State &parameters)
+auto computeSensitivityMatrix(Driver &driver, const State &parameters)
 {
-    Driver *p_driver = static_cast<Driver *>(driver);
+    int Nin = driver.GetNin();
+    int Npar = driver.GetNpar();
 
-    int Nin = p_driver->GetNin();
-    int Npar = p_driver->GetNpar();
-
-    ublas::matrix<double> jacobian(Nin, Npar);
+    std::vector<std::vector<double>> jacobian(Nin, std::vector<double>(Npar, 0.0));
 
     aadc::mmVector<mmType> wbarend(Nin);
     aadc::mmVector<mmType> alphabar(Npar);
@@ -356,11 +373,11 @@ ublas::matrix<double> compute_jacobian(void *driver, const State &parameters)
         for (int j = 0; j < sizeOfBatch; j++)
             wbarend[n * sizeOfBatch + j][j] = 1.0;
 
-        alphabar = back_prop(p_driver, wbarend, parameters, boost::numeric::odeint::null_observer());
+        alphabar = back_prop(driver, wbarend, parameters, boost::numeric::odeint::null_observer());
 
         for (int j = 0; j < sizeOfBatch; j++) {
             for (int k = 0; k < parameters.size(); k++) {
-                jacobian(n * sizeOfBatch + j, k) = alphabar[k][j];
+                jacobian[n * sizeOfBatch + j][k] = alphabar[k][j];
             }
         }
     }
@@ -374,11 +391,11 @@ ublas::matrix<double> compute_jacobian(void *driver, const State &parameters)
     for (int j = 0; j < remainderEntries; j++)
         wbarend[(numOfBatches)*sizeOfBatch + j][j] = 1.0;
 
-    alphabar = back_prop(p_driver, wbarend, parameters, boost::numeric::odeint::null_observer());
+    alphabar = back_prop(driver, wbarend, parameters, boost::numeric::odeint::null_observer());
 
     for (int j = 0; j < remainderEntries; j++) {
         for (int k = 0; k < parameters.size(); k++) {
-            jacobian((numOfBatches)*sizeOfBatch + j, k) = alphabar[k][j];
+            jacobian[(numOfBatches)*sizeOfBatch + j][k] = alphabar[k][j];
         }
     }
 

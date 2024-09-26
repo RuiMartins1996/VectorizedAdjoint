@@ -8,11 +8,12 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/examples/VanDerPol/debug/vanderpol",
+            "program": "${workspaceFolder}/examples/GeneralizedLotkaVolterra/debug/lotka",
             "args": [
-                "1e-5"
+                "1e-5",
+                "5"
             ],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/examples/GeneralizedLotkaVolterra/debug"
         }
     ]
 }

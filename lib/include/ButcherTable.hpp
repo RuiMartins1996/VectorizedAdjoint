@@ -6,37 +6,34 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 
-// TODO: Can use boost::odeint coefficients instead of doing this by hand
-// TODO: Could access coefficients directly like so :
-// boost::numeric::odeint::rk4_coefficients_a1();
+namespace odeint = boost::numeric::odeint;
 
 class ButcherTable
 {
+
   private:
     std::unique_ptr<std::vector<double>> p_a;
     std::unique_ptr<std::vector<double>> p_b;
     std::unique_ptr<std::vector<double>> p_c;
 
   public:
-    template <typename Stepper, typename State>
-    ButcherTable(Stepper stepper, State &u0)
+    template <typename Stepper>
+    ButcherTable(Stepper stepper)
     {
-        typedef typename boost::numeric::odeint::unwrap_reference<
-            Stepper>::type::stepper_category stepper_category;
+        typedef typename odeint::unwrap_reference<Stepper>::type::stepper_category stepper_category;
 
-        initialize(stepper, u0, stepper_category());
+        initialize(stepper, stepper_category());
     };
 
-    template <typename Stepper, typename State>
-    void initialize(Stepper stepper, State &u0,
-                    boost::numeric::odeint::explicit_controlled_stepper_tag)
+    template <typename Stepper>
+    void initialize(Stepper stepper, odeint::explicit_controlled_stepper_tag)
     {
         std::cout << "To create Driver, we need to supply an error stepper or a regular stepper, not a controlled stepper!" << std::endl;
     }
 
     // For non-controlled steppers
-    template <typename Stepper, typename State>
-    void initialize(Stepper stepper, State &u0, boost::numeric::odeint::stepper_tag)
+    template <typename Stepper>
+    void initialize(Stepper stepper, odeint::stepper_tag)
     {
         int stages;
 
@@ -44,7 +41,9 @@ class ButcherTable
         std::unique_ptr<std::vector<double>> _b;
         std::unique_ptr<std::vector<double>> _c;
 
-        if (typeid(stepper) == typeid(boost::numeric::odeint::euler<State>)) {
+        using State = typename odeint::unwrap_reference<Stepper>::type::state_type;
+
+        if (typeid(stepper) == typeid(odeint::euler<State>)) {
             // std::cout << "Euler\n";
 
             stages = 1;
@@ -60,10 +59,10 @@ class ButcherTable
             p_a = std::move(_a);
             p_b = std::move(_b);
             p_c = std::move(_c);
-        } else if (typeid(stepper) == typeid(boost::numeric::odeint::runge_kutta4_classic<State>)) {
+        } else if (typeid(stepper) == typeid(odeint::runge_kutta4_classic<State>)) {
             // std::cout << "Runge-Kutta 4\n";
 
-            using namespace boost::numeric::odeint;
+            using namespace odeint;
 
             stages = 4;
 
@@ -122,10 +121,12 @@ class ButcherTable
     }
 
     // For controlled (error) steppers
-    template <typename Stepper, typename State>
-    void initialize(Stepper stepper, State &u0, boost::numeric::odeint::error_stepper_tag)
+    template <typename Stepper>
+    void initialize(Stepper stepper, odeint::error_stepper_tag)
     {
-        using namespace boost::numeric::odeint;
+        using namespace odeint;
+
+        using State = typename odeint::unwrap_reference<Stepper>::type::state_type;
 
         int stages;
 
@@ -133,7 +134,7 @@ class ButcherTable
         std::unique_ptr<std::vector<double>> _b;
         std::unique_ptr<std::vector<double>> _c;
 
-        if (typeid(stepper) == typeid(boost::numeric::odeint::runge_kutta_cash_karp54<State>)) {
+        if (typeid(stepper) == typeid(odeint::runge_kutta_cash_karp54<State>)) {
             // std::cout << "Runge-Kutta CashKarp(45) 4\n";
 
             stages = 6;
@@ -174,8 +175,8 @@ class ButcherTable
             // Apply the process_tuple lambda to the a_tuple
             std::apply(process_tuple, a_tuple);
 
-            boost::array<double, 6> b = boost::numeric::odeint::rk54_ck_coefficients_b<double>();
-            boost::array<double, 6> c = boost::numeric::odeint::rk54_ck_coefficients_c<double>();
+            boost::array<double, 6> b = odeint::rk54_ck_coefficients_b<double>();
+            boost::array<double, 6> c = odeint::rk54_ck_coefficients_c<double>();
 
             std::copy(b.begin(), b.end(), _b->begin());
             std::copy(c.begin(), c.end(), _c->begin());
@@ -183,7 +184,7 @@ class ButcherTable
             p_a = std::move(_a);
             p_b = std::move(_b);
             p_c = std::move(_c);
-        } else if (typeid(stepper) == typeid(boost::numeric::odeint::runge_kutta_fehlberg78<State>)) {
+        } else if (typeid(stepper) == typeid(odeint::runge_kutta_fehlberg78<State>)) {
             // std::cout << "Runge-Kutta Fehlberg(78) 4\n";
 
             int stages = 13;
