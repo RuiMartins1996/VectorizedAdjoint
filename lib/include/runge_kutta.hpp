@@ -16,7 +16,7 @@ template <class Stepper, class System, class State, class Time, class Observer>
 size_t runge_kutta(
     Stepper stepper, System system, State &start_state,
     const State &alphas, Time start_time, const Time end_time,
-    Time dt, void *driver, Observer observer)
+    Time dt, Driver &driver, Observer observer)
 {
     typedef typename odeint::unwrap_reference<Stepper>::type::stepper_category
         stepper_category;

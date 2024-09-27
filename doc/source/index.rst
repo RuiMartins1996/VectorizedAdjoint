@@ -84,6 +84,7 @@ This class need to know the size of the state vector, the number of output cost 
 
 Performing a forward pass
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+The ODE system must be solver and the trajectory must be stored in a tape. This is done via the runge_kutta() function:
 
 .. code-block:: cpp
 

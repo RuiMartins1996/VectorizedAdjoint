@@ -59,7 +59,7 @@ class ButcherTable
             p_a = std::move(_a);
             p_b = std::move(_b);
             p_c = std::move(_c);
-        } else if (typeid(stepper) == typeid(odeint::runge_kutta4_classic<State>)) {
+        } else if (typeid(stepper) == typeid(odeint::runge_kutta4_classic<State>) || typeid(stepper) == typeid(odeint::runge_kutta4<State>)) {
             // std::cout << "Runge-Kutta 4\n";
 
             using namespace odeint;

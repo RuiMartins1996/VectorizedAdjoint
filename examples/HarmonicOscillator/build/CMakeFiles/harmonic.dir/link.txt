@@ -1,0 +1,1 @@
+/usr/bin/c++  -mavx2 -Wno-ignored-attributes -rdynamic CMakeFiles/harmonic.dir/main.cpp.o -o harmonic  -Wl,-rpath,/home/rui/Desktop/VectorizedAdjoint/examples/HarmonicOscillator/../../aadc/lib ../../../aadc/lib/libaadc.so 

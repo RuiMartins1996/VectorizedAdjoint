@@ -57,7 +57,7 @@ auto computeSensitivityMatrixNoSIMD(Driver &driver, const State &parameters)
             throw std::runtime_error("Must call recordDriverRHSFunction() to record the RHS with automatic differentiation!");
         }
 
-        detail::computeSensitivityMatrixNoSIMD(driver, parameters);
+        return detail::computeSensitivityMatrixNoSIMD(driver, parameters);
     } catch (std::exception &e) {
         std::cout << e.what() << std::endl;
         return std::vector(0, std::vector<double>(0));

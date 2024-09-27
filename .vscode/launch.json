@@ -8,12 +8,9 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/examples/GeneralizedLotkaVolterra/debug/lotka",
-            "args": [
-                "1e-5",
-                "5"
-            ],
-            "cwd": "${workspaceFolder}/examples/GeneralizedLotkaVolterra/debug"
+            "program": "${workspaceFolder}/examples/HarmonicOscillator/debug/harmonic",
+            "args": [],
+            "cwd": "${workspaceFolder}/examples/HarmonicOscillator/debug"
         }
     ]
 }
