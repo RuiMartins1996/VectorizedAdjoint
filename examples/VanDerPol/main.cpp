@@ -2,9 +2,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <type_traits>
-#include <utility> // for std::declval
-
 #include "../../lib/include/lib.hpp"
 
 using namespace boost::numeric::odeint;
@@ -30,18 +27,7 @@ class Observer
     std::vector<double> times = {};
 };
 
-const double tol = 1e-5;
-
-// Define the type of stepper to use to solve the system of ODEs
-typedef std::vector<double> state_type;
-typedef odeint::runge_kutta_fehlberg78<state_type> stepper_type;
-//  OTHER OPTIONS
-//  typedef odeint::runge_kutta_cash_karp54<state_type> stepper_type;
-// typedef odeint::runge_kutta4_classic<state_type> stepper_type;
-// typedef odeint::euler<state_type> stepper_type;
-
 // System functor for the VanDerPol oscillator
-
 class VanDerPol
 {
   public:
@@ -49,12 +35,17 @@ class VanDerPol
 
     // Overload operator() to define the rhs of the system of ODEs
     template <typename T>
-    void operator()(const std::vector<T> &x, std::vector<T> &dxdt, std::vector<T> &mu, const T t) const
+    void operator()(const std::vector<T> &x, std::vector<T> &dxdt, const std::vector<T> &mu, const T t) const
     {
         dxdt[0] = x[1];
         dxdt[1] = mu[0] * ((1.0 - x[0] * x[0]) * x[1] - x[0]);
     }
 };
+
+const double tol = 1e-5;
+
+// Define the type of stepper to use to solve the system of ODEs
+typedef odeint::runge_kutta_fehlberg78<std::vector<double>> stepper_type;
 
 int main(int argc, char *argv[])
 {

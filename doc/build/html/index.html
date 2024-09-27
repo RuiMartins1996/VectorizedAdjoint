@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tutorial for sensitivity analysis of the Vanderpol equation &#8212; Documentation for VectorizedAdjoint 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="tutorial-for-sensitivity-analysis-of-the-vanderpol-equation">
+<h1>Tutorial for sensitivity analysis of the Vanderpol equation<a class="headerlink" href="#tutorial-for-sensitivity-analysis-of-the-vanderpol-equation" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>This tutorial demonstrates how to perform sensitivity analysis of the Vanderpol equation using the library provided by this repository.</p>
+<p>The Vanderpol equation is a second-order system of nonlinear differential equations
+with two depedent variables <span class="math notranslate nohighlight">\(u_1(t)\)</span> and <span class="math notranslate nohighlight">\(u_2(t)\)</span>, given by:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+        \dot{u}_1\\
+        \dot{u}_2
+\end{bmatrix}
+=
+\begin{bmatrix}
+        u_2\\
+        \mu\left((1-u_1^2)u_2-u_1\right)
+\end{bmatrix}.\end{split}\]</div>
+<p>We consider the time domain <span class="math notranslate nohighlight">\([t_i,t_f] = [0,0.5]\)</span>, parameter value <span class="math notranslate nohighlight">\(\mu=1\times10^3\)</span>
+and initial conditions <span class="math notranslate nohighlight">\(u_1(0) = 2.0\)</span> and <span class="math notranslate nohighlight">\(u_2(0) = - 2/3 +10/(81\mu) - 292/(2187\mu^2)\)</span>.</p>
+</section>
+<section id="define-the-ode-system">
+<h2>Define the ODE system<a class="headerlink" href="#define-the-ode-system" title="Link to this heading">¶</a></h2>
+<p>Mathematically, the state of the ODE system is an n-dimensional vector of real or complex numbers (this library only supports real numbers).
+In this library, the state of the system is represented by the <code class="code docutils literal notranslate"><span class="pre">std::vector&lt;T&gt;</span></code> container type, where <code class="code docutils literal notranslate"><span class="pre">T</span></code> is a template parameter.</p>
+<p>The ODE system is assumed to be in the form <span class="math notranslate nohighlight">\(\dot{x}(t) = f(x,\mu,t)\)</span>, where <span class="math notranslate nohighlight">\(x\)</span> is the state vector, <span class="math notranslate nohighlight">\(\mu\)</span> is the parameter vector and <span class="math notranslate nohighlight">\(t\)</span> is the time.
+The system is defined by defining a functor that implements the right hand side with the ()-operator with a specific signature:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">VanDerPol</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">   </span><span class="n">VanDerPol</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="w">   </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="w">   </span><span class="kt">void</span><span class="w"> </span><span class="k">operator</span><span class="p">()(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">dxdt</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">mu</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="n">dxdt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">      </span><span class="n">dxdt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">((</span><span class="mf">1.0</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">   </span><span class="p">}</span>
+
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>The signature of the ()-operator must always be the same as it is shown in the code above. The first argument is the state vector, the second argument is the rhs vector, the third argument is the parameter vector and the fourth argument is the time.
+The ()-operator must be templated to allow an unique implementation to be used by the stepper and by the AADC library. It is also possible to define two versions of the functor, one for <code class="code docutils literal notranslate"><span class="pre">T</span> <span class="pre">=</span> <span class="pre">double</span></code> and another for <code class="code docutils literal notranslate"><span class="pre">T</span> <span class="pre">=</span> <span class="pre">idouble</span></code>, a type that defines an active variable in the AADC library.
+This, however, is uglier code.</p>
+</section>
+<section id="define-the-stepper-type">
+<h2>Define the Stepper Type<a class="headerlink" href="#define-the-stepper-type" title="Link to this heading">¶</a></h2>
+<p>This library uses the <code class="code docutils literal notranslate"><span class="pre">boost::numeric::odeint</span></code> steppers to solve the ODE system.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="n">odeint</span><span class="o">::</span><span class="n">runge_kutta_fehlberg78</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">stepper_type</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>In this example we are using an adaptive stepper, the Runge-Kutta-Fehlberg 7(8) stepper, so we need to provide an absolute and relative error tolerance (defined in <code class="code docutils literal notranslate"><span class="pre">const</span> <span class="pre">double</span> <span class="pre">tol</span> <span class="pre">=</span> <span class="pre">1e-5</span></code> or by user input in this example).</p>
+</section>
+<section id="performing-sensitivity-analysis">
+<h2>Performing sensitivity analysis<a class="headerlink" href="#performing-sensitivity-analysis" title="Link to this heading">¶</a></h2>
+<p>If we wish to find the sensitivities of a cost function that depends on the solution of the ODE system and on the parameters, we need to create an instance of the <code class="code docutils literal notranslate"><span class="pre">Driver</span></code> class</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// System size</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="c1">// Number of parameters</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">Npar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="c1">// Create a driver object</span>
+<span class="n">Driver</span><span class="w"> </span><span class="nf">driver</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">Npar</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This class need to know the size of the state vector, the number of output cost functions and the number of parameters. Here, we are computing the sensitivity matrix of the ODE system, so the output cost functions are the solution of the ODE system (which has a size of 2).</p>
+<section id="performing-a-forward-pass">
+<h3>Performing a forward pass<a class="headerlink" href="#performing-a-forward-pass" title="Link to this heading">¶</a></h3>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Forward pass</span>
+<span class="kt">size_t</span><span class="w"> </span><span class="n">numSteps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">runge_kutta</span><span class="p">(</span>
+<span class="w">   </span><span class="n">odeint</span><span class="o">::</span><span class="n">make_controlled</span><span class="o">&lt;</span><span class="n">stepper_type</span><span class="o">&gt;</span><span class="p">(</span><span class="n">AbsTol</span><span class="p">,</span><span class="w"> </span><span class="n">RelTol</span><span class="p">),</span><span class="w"> </span><span class="n">vdp</span><span class="p">,</span><span class="w"> </span><span class="n">x0</span><span class="p">,</span><span class="w"> </span><span class="n">mu</span><span class="p">,</span><span class="w"> </span><span class="n">ti</span><span class="p">,</span><span class="w"> </span><span class="n">tf</span><span class="p">,</span><span class="w"> </span><span class="n">dt</span><span class="p">,</span><span class="w"> </span><span class="n">driver</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>If we are performing integration with constant step size, the first argument should be an instance of <code class="code docutils literal notranslate"><span class="pre">stepper_type</span></code>, where this is an appropriate constant time step stepper.
+If we want adaptive step size, we need to pass an instance of a controlled stepper, which can be constructed via <code class="code docutils literal notranslate"><span class="pre">odeint::make_controlled&lt;stepper_type&gt;(AbsTol,</span> <span class="pre">RelTol)</span></code>,
+where <code class="code docutils literal notranslate"><span class="pre">AbsTol</span></code> and <code class="code docutils literal notranslate"><span class="pre">RelTol</span></code> are the absolute and relative error tolerances, respectively and <code class="code docutils literal notranslate"><span class="pre">stepper_type</span></code> is an error stepper.</p>
+</section>
+</section>
+<section id="define-an-observer">
+<h2>Define an Observer<a class="headerlink" href="#define-an-observer" title="Link to this heading">¶</a></h2>
+<p>The Observer construct is a way for the user to log information of the forward and reverse passes.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Observer</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">   </span><span class="n">Observer</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="w">   </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">State</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Time</span><span class="o">&gt;</span>
+<span class="w">   </span><span class="kt">void</span><span class="w"> </span><span class="k">operator</span><span class="p">()(</span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">Time</span><span class="w"> </span><span class="n">time</span><span class="p">)</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;t:&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; x = [&quot;</span><span class="p">;</span>
+<span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="n">xi</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">xi</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; &quot;</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; ]&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="k">private</span><span class="o">:</span>
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">times</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{};</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Documentation for VectorizedAdjoint</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Rui Martins.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
