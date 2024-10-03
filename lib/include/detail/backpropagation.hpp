@@ -296,18 +296,70 @@ State backpropagation(Driver &driver, State &wbarend, const State &parameters, O
 template <class State>
 void adjointSolve(Driver &driver, const State &parameters)
 {
+    // This function is going to change the entries of the vectors driver.p_lambda and driver.p_mu!
     int Nout = driver.GetNout();
     int Npar = driver.GetNpar();
+    int Nin = driver.GetNin();
 
-    for (int i = 0; i < Nout; i++) {
+    // Number of doubles that fit into an mmType. We can "process" a batch at a time.
+    int sizeOfBatch = static_cast<int>(sizeof(mmType) / sizeof(double));
 
-        std::vector<double> &lambda_i = (*driver.p_lambda)[i];
-        std::vector<double> &mu_i = (*driver.p_mu)[i];
+    int numOfBatches = Nout / sizeOfBatch;
+    int remainderEntries = Nout % sizeOfBatch;
 
-        State alphabar = back_prop(driver, lambda_i, parameters, boost::numeric::odeint::null_observer());
+    aadc::mmVector<mmType> wbarend(Nin);
+    aadc::mmVector<mmType> alphabar(Npar);
 
-        for (int k = 0; k < Npar; k++)
-            mu_i[k] += alphabar[k];
+    // Handle reverse pass for first numOfBatches*sizeOfBatch objetive functions
+    // Each batch of sizeOfBatch objective functions is "processed" in parallel
+    for (int n = 0; n < numOfBatches; n++) {
+
+        // Load seed with the values of lambda
+        for (int j = 0; j < sizeOfBatch; j++) { // Iterate over the vectors in a single batch
+            for (int i = 0; i < Nin; i++) {     // Fill the seed with the values of lambda
+                wbarend[i][j] = (*driver.p_lambda)[n * sizeOfBatch + j][i];
+            }
+        }
+
+        alphabar = back_prop(driver, wbarend, parameters, boost::numeric::odeint::null_observer());
+
+        // Update lambda
+        for (int j = 0; j < sizeOfBatch; j++) { // Iterate over the vectors in a single batch
+            for (int i = 0; i < Nin; i++) {     // Fill the seed with the values of lambda
+                (*driver.p_lambda)[n * sizeOfBatch + j][i] = wbarend[i][j];
+            }
+        }
+
+        for (int j = 0; j < sizeOfBatch; j++) { // Iterate over the vectors in a single batch
+            for (int k = 0; k < Npar; k++) {
+                (*driver.p_mu)[n * sizeOfBatch + j][k] += alphabar[k][j];
+            }
+        }
+    }
+
+    // Handle reverse pass for last Nout % sizeOfBatch objetive functions
+
+    // Load seed with the values of lambda
+    for (int j = 0; j < remainderEntries; j++) { // Iterate over the vectors in a single batch
+        for (int i = 0; i < Nin; i++) {          // Fill the seed with the values of lambda
+            wbarend[i][j] = (*driver.p_lambda)[(numOfBatches)*sizeOfBatch + j][i];
+        }
+    }
+
+    alphabar = back_prop(driver, wbarend, parameters, boost::numeric::odeint::null_observer());
+
+    // Update lambda
+    // TODO: There must be a better way to do this than to copy the values to wbarend from lambda and the copy the result wbarend to lambda
+    for (int j = 0; j < remainderEntries; j++) { // Iterate over the vectors in a single batch
+        for (int i = 0; i < Nin; i++) {          // Fill the seed with the values of lambda
+            (*driver.p_lambda)[(numOfBatches)*sizeOfBatch + j][i] = wbarend[i][j];
+        }
+    }
+
+    for (int j = 0; j < remainderEntries; j++) { // Iterate over the vectors in a single batch
+        for (int k = 0; k < Npar; k++) {
+            (*driver.p_mu)[(numOfBatches)*sizeOfBatch + j][k] += alphabar[k][j];
+        }
     }
 };
 
