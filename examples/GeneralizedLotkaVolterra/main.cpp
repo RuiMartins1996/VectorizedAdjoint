@@ -10,9 +10,7 @@
 #include <chrono>
 #include <filesystem>
 
-// MyLib includes
-#include "../../lib/include/backpropagation.hpp"
-#include "../../lib/include/runge_kutta.hpp"
+#include "../../lib/include/lib.hpp"
 
 using namespace boost::numeric::odeint;
 using namespace vectorizedadjoint;
@@ -104,7 +102,6 @@ class LotkaVolterra
   public:
     LotkaVolterra() = default;
 
-    // Overload operator() to define the rhs of the system of ODEs
     template <typename T>
     void operator()(const std::vector<T> &x, std::vector<T> &dxdt,
                     const std::vector<T> &parameters, T t)
@@ -149,27 +146,29 @@ int main(int argc, char *argv[])
     std::cout << "Tolerance: " << tol << std::endl;
     std::cout << "N: " << N << std::endl;
 
-    LotkaVolterra lotka;
-
-    std::vector<double> x0(N);
-    for (int i = 0; i < N; i++)
-        x0[i] = 0.1;
-    std::vector<double> dxdt(N);
-
     // Number of parameters
     int Npar = N * N + N;
 
+    LotkaVolterra lotka;
+
+    // Initial conditions
+    std::vector<double> x0(N);
+    for (int i = 0; i < N; i++)
+        x0[i] = 0.1;
+
+    // Get the values of the parameters from a .csv file stored in data/N$/alphasfile_cpp.csv
     std::vector<double> alphas = readAlphasFromFile(N);
 
-    i_error_stepper_type rk;
-
+    // Time interval
     double ti = 0.0;
     double tf = 10.0;
     double dt = 1e-3;
+
+    // Tolerances for the adaptive stepper
     double AbsTol = tol;
     double RelTol = tol;
 
-    // Create a stepper object
+    // Create a stepper instance
     stepper_type stepper;
 
     Driver driver(N, N, Npar);
@@ -177,7 +176,6 @@ int main(int argc, char *argv[])
     auto trki = std::chrono::high_resolution_clock::now();
     runge_kutta(
         boost::numeric::odeint::make_controlled<stepper_type>(AbsTol, RelTol), lotka, x0, alphas, ti, tf, dt, driver);
-
     auto trkf = std::chrono::high_resolution_clock::now();
 
     auto start = std::chrono::time_point_cast<std::chrono::microseconds>(trki).time_since_epoch().count();
@@ -185,10 +183,10 @@ int main(int argc, char *argv[])
 
     auto times_microseconds_rk = end - start;
 
-    /*
     auto lambda = std::vector(N, std::vector<double>(N));
     auto muDerivative = std::vector(N, std::vector<double>(Npar));
 
+    // We want to find the sensitivities of the solution at t = t_f w.r.t. the initial conditions and w.r.t. the parameters
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             if (i == j) {
@@ -208,29 +206,16 @@ int main(int argc, char *argv[])
     recordDriverRHSFunction(driver, lotka);
     // Set derivatives of cost functions w.r.t ODE solution and w.r.t. parameters
     setCostGradients(driver, lambda, muDerivative);
-    // Reverse pass to obtain the adjoints of the cost functions
-    vectorizedadjoint::adjointSolve(driver, alphas);
-    */
-
-    // Inform driver of stepper butcher tableau, needed for reverse pass
-    constructDriverButcherTableau(driver, stepper);
-    // Record RHS function with automatic differentiation
-    recordDriverRHSFunction(driver, lotka);
 
     auto tadji = std::chrono::high_resolution_clock::now();
-    auto J = computeSensitivityMatrix(driver, alphas);
+    // Reverse pass to obtain the adjoints of the cost functions
+    adjointSolve(driver, alphas);
     auto tadjf = std::chrono::high_resolution_clock::now();
 
     start = std::chrono::time_point_cast<std::chrono::microseconds>(tadji).time_since_epoch().count();
     end = std::chrono::time_point_cast<std::chrono::microseconds>(tadjf).time_since_epoch().count();
 
     auto times_microseconds_adj = end - start;
-
-    std::vector<double> muAdjoints(N * Npar);
-    for (int i = 0; i < N; i++) {
-        for (int k = 0; k < Npar; k++)
-            muAdjoints[i * Npar + k] = J[i][k];
-    }
 
     std::cout << "Time forward integration: " << times_microseconds_rk << " microseconds" << std::endl;
     std::cout << "Time adjoint integration: " << times_microseconds_adj << " microseconds" << std::endl;
