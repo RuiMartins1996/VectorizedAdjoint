@@ -205,15 +205,8 @@ void back_prop_step(Driver &driver, State &wbarend, State &alphabar, const State
         for (int i = 0; i < Nin; i++)
             w_bar_m_vec[i] = w_bar_n(i, m);
 
-        //* Do vector times Jacobian multiplication (vA) for state and
-        // parameter Jacobians
-
-        // vector_times_jacobian(driver,w_bar_m_vec, wk, alphas,
-        //                                           time, wJx, wJalpha);
-
+        //* Do vector times Jacobian multiplication (vA) for state and parameter Jacobians
         driver.p_aad_data->VectorTimesJacobians(w_bar_m_vec, wk, alphas, time_m_n, wJx, wJalpha);
-
-        //(lldb) breakpoint set --name breakpoint --condition 'time < 0.01' ;
 
         //* Update adjoints of order 0...m-1
         for (int i = 0; i < Nin; i++) {

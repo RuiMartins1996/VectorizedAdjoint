@@ -19,8 +19,8 @@ class Driver
     std::unique_ptr<StateStorage> p_states;
     std::unique_ptr<ButcherTable> p_butcher;
 
-    std::unique_ptr<std::vector<std::vector<double>>> p_lambda;
-    std::unique_ptr<std::vector<std::vector<double>>> p_mu;
+    std::vector<std::vector<double>> *p_lambda;
+    std::vector<std::vector<double>> *p_mu;
 
   private:
     int m_Nin;
@@ -96,19 +96,21 @@ template <typename System>
 void recordDriverRHSFunction(Driver &driver, System system)
 {
     driver.p_aad_data = std::move(
-        std::make_unique<AadData>(driver.GetNin(), driver.GetNout(), driver.GetNpar(), system));
+        std::make_unique<AadData>(driver.GetNin(), driver.GetNpar(), system));
 }
 
 // Sets the derivatives of each component of the cost function w.r.t. to the ODE solution and w.r.t. the parameters
-void setCostGradients(Driver &driver, const std::vector<std::vector<double>> &lambda, const std::vector<std::vector<double>> &mu)
+void setCostGradients(Driver &driver, std::vector<std::vector<double>> &lambda, std::vector<std::vector<double>> &mu)
 {
     assert(lambda.size() == driver.GetNout());
     assert(lambda[0].size() == driver.GetNin());
     assert(mu.size() == driver.GetNout());
     assert(mu[0].size() == driver.GetNpar());
 
-    driver.p_lambda = std::move(std::make_unique<std::vector<std::vector<double>>>(lambda));
-    driver.p_mu = std::move(std::make_unique<std::vector<std::vector<double>>>(mu));
+    driver.p_lambda = &lambda;
+    driver.p_mu = &mu;
+
+    // driver.p_mu = std::move(std::make_unique<std::vector<std::vector<double>>>(mu));
 }
 
 } // namespace lib

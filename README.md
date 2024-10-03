@@ -26,21 +26,15 @@ VectorizedAdjoint implementation requires boot::numeric::odeint, a library for o
 
 Usage:
 ============================================================
-For usage of VectorizedAdjoint, please refer to the user's guide, as well as the example programs containing drivers and makefiles which can be used as templates. 
+For usage of VectorizedAdjoint, please refer to the user's guide, as well as the example programs containing drivers and makefiles which can be used as templates.
+The user's guide is in doc/build/html/index.html. Run it in a browser.
 
 
-How to run the examples:
+How to build the examples:
 ============================================================
-    cd examples/VanDerPol
+    cd examples/ExampleFolder
     mkdir build
     cmake -S . -B ./build
     cd build
     make
-    ./vanderpol <tolerance>
-
-    cd examples/GeneralizedLotkaVolterra:
-    mkdir build
-    cmake -S . -B ./build
-    cd build
-    make
-    ./lotka <tolerance> <N>
+    ./executable_name <command_line_arguments> <...>

@@ -48,7 +48,7 @@ class AadData
   public:
     //*CONSTRUCTOR
     template <class System>
-    AadData(const int Nin, const int Nout, const int Npar, System system)
+    AadData(const int Nin, const int Npar, System system)
     {
         std::vector<aadc::AADCArgument> _input_args(Nin);
         input_args = _input_args;
@@ -58,7 +58,7 @@ class AadData
 
         input_time = std::make_unique<aadc::AADCArgument>(0.0);
 
-        std::vector<aadc::AADCResult> _output_args(Nout);
+        std::vector<aadc::AADCResult> _output_args(Nin); //! Changed here recently. Since AadData is used to record f(u,alpha,t), the number of inputs and output is always the same and equal to Nin
         output_args = _output_args;
 
         std::unique_ptr<aadc::AADCFunctions<mmType>> _p_aad_funcs =
@@ -374,12 +374,11 @@ class AadData
 };
 
 template <class System>
-std::unique_ptr<AadData> AadDataFactory(const int Nin, const int Nout, const int Npar,
-                                        System system)
+std::unique_ptr<AadData> AadDataFactory(const int Nin, const int Npar, System system)
 {
     // Implicit move operation into the variable that stores the result.
     // AadData aad(Nin, Npar, stepper, system);
-    return std::make_unique<AadData>(Nin, Nout, Npar, system);
+    return std::make_unique<AadData>(Nin, Npar, system);
 };
 
 #endif

@@ -72,6 +72,8 @@ int main(int argc, char *argv[])
     double AbsTol = tol;
     double RelTol = tol;
 
+    auto ctrlStepper = odeint::make_controlled<stepper_type>(AbsTol, RelTol);
+
     // System size
     int N = 2;
     // Number of parameters
@@ -79,15 +81,14 @@ int main(int argc, char *argv[])
 
     // Create a stepper object
     stepper_type stepper;
-    // Create the system function
+    // Create the system function instance
     auto vdp = VanDerPol();
 
     // Create a driver object
     Driver driver(N, N, Npar);
 
     // Forward pass
-    size_t numSteps = runge_kutta(
-        odeint::make_controlled<stepper_type>(AbsTol, RelTol), vdp, x0, mu, ti, tf, dt, driver);
+    size_t numSteps = runge_kutta(ctrlStepper, vdp, x0, mu, ti, tf, dt, driver);
 
     std::cout << "Number of steps: " << numSteps << std::endl;
 
