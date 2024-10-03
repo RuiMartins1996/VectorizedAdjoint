@@ -40,8 +40,12 @@ How to build the examples:
     cmake -S . -B ./build
     cd build
     make
-    ./executable_name <command_line_arguments> 
+    ./executable_name <command_line_arguments>
+
+Link to preprint:
+============================================================
+Here is a [link](http://www.example.com) to the Arxiv preprint of the article regarding the development of this library and the introduction of SIMD vectorization in the discrete adjoint sensitivity analysis algorithm. 
 
 Personal note:
 ============================================================
-This is my first coding project. It is in a very early stage and suggestions and constructive criticism are very welcome. You can submit an issue on GitHub or [email me](mailto:rui.carlos.andrade.martins@gmail.com).
+This is my first coding project. It is in a very early stage and suggestions and constructive criticism are very welcome. You can submit an issue on GitHub or email me at [rui.carlos.andrade.martins@gmail.com](mailto:rui.carlos.andrade.martins@gmail.com).
