@@ -13,9 +13,10 @@ Structure:
 VectorizedAdjoint contains the following directory structure:
 
     VectorizedAdjoint/README        general instructions
+    VectorizedAdjoint/aadc          The AADC library for automatic differentiation
     VectorizedAdjoint/lib           library implementation
     VectorizedAdjoint/examples      example programs
-    VectorizedAdjoint/doc           user's guide (TODO!)
+    VectorizedAdjoint/doc           user's guide
 
 Dependencies:
 ============================================================
@@ -26,8 +27,10 @@ VectorizedAdjoint implementation requires boot::numeric::odeint, a library for o
 
 Usage:
 ============================================================
-For usage of VectorizedAdjoint, please refer to the user's guide, as well as the example programs containing drivers and makefiles which can be used as templates.
-The user's guide is in doc/build/html/index.html. Run it in a browser.
+For usage of VectorizedAdjoint, please refer to the user's guide, as well as the example programs containing drivers and makefiles which can be used as templates. If you are on Ubuntu, to run the user's guide in your default browser you can do:  
+    cd doc/build/html
+    xdg-open index.html
+If this does not work you can try navigating to the indicated folder and drag and drop the index.html file on your preferred browser.
 
 
 How to build the examples:
@@ -37,4 +40,8 @@ How to build the examples:
     cmake -S . -B ./build
     cd build
     make
-    ./executable_name <command_line_arguments> <...>
+    ./executable_name <command_line_arguments> 
+
+Personal note:
+============================================================
+This is my first coding project. It is in a very early stage and suggestions and constructive criticism are very welcome. You can submit an issue on GitHub or [email me](mailto:rui.carlos.andrade.martins@gmail.com).
