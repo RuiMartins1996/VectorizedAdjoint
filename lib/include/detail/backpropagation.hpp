@@ -279,20 +279,6 @@ State back_prop(Driver &driver, State &wbarend, const State &alphas, Observer ob
     return alphabar;
 };
 
-/*
-template <class State>
-State backpropagation(Driver &driver, State &wbarend, const State &parameters)
-{
-    return back_prop(driver, wbarend, parameters, boost::numeric::odeint::null_observer());
-};
-
-template <class State, class Observer>
-State backpropagation(Driver &driver, State &wbarend, const State &parameters, Observer observer)
-{
-    return back_prop(driver, wbarend, parameters, observer);
-};
-*/
-
 template <class State>
 void adjointSolve(Driver &driver, const State &parameters)
 {
@@ -362,6 +348,8 @@ void adjointSolve(Driver &driver, const State &parameters)
         }
     }
 };
+
+//! LEGACY:
 
 // This function handles the computation of the sensitivity matrix of the ODE system WITHOUT leveraging SIMD vectorization
 template <class State>

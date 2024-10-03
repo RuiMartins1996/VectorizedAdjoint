@@ -94,19 +94,31 @@ int main(int argc, char *argv[])
 
     std::cout << "Solution: x = [" << x0[0] << ", " << x0[1] << "]" << std::endl;
 
+    auto lambda = std::vector(N, std::vector<double>(N));
+
+    lambda[0][0] = 1.0; // dx(t_f)/d x(t_f) = 1.0
+    lambda[0][1] = 0.0; // dx(t_f)/d v(t_f) = 0.0
+    lambda[1][0] = 0.0; // dv(t_f)/d x(t_f) = 0.0
+    lambda[1][1] = 1.0; // dv(t_f)/d v(t_f) = 1.0
+
+    auto muadj = std::vector(N, std::vector<double>(Npar));
+    muadj[0][0] = 0.0; // dx(t_f)/d(mu) = 0
+    muadj[1][0] = 0.0; // dv(t_f)/d(mu) = 0
+
+    // Set derivatives of cost functions w.r.t ODE solution and w.r.t. parameters
+    setCostGradients(driver, lambda, muadj);
+
     // Inform driver of stepper butcher tableau, needed for reverse pass
     constructDriverButcherTableau(driver, stepper);
     // Record RHS function with automatic differentiation
     recordDriverRHSFunction(driver, vdp);
 
-    // Compute the ODE sensitivity matrix
-    auto muMatrix = backpropagation::computeSensitivityMatrixNoSIMD(driver, mu);
-    // auto muMatrix = backpropagation::computeSensitivityMatrix(driver, mu);
+    backpropagation::adjointSolve(driver, mu);
 
-    // Print sensitivity matrix
     for (int i = 0; i < N; i++) {
-        for (int j = 0; j < Npar; j++)
-            std::cout << "mu[" << i << "][" << j << "] = " << muMatrix[i][j] << " ";
+        for (int j = 0; j < Npar; j++) {
+            std::cout << "mu[" << i << "][" << j << "] = " << muadj[i][j] << " ";
+        }
         std::cout << std::endl;
     }
 

@@ -26,9 +26,13 @@ class ButcherTable
     };
 
     template <typename Stepper>
-    void initialize(Stepper stepper, odeint::explicit_controlled_stepper_tag)
+    void initialize(Stepper ctrlStepper, odeint::explicit_controlled_stepper_tag)
     {
-        std::cout << "To create Driver, we need to supply an error stepper or a regular stepper, not a controlled stepper!" << std::endl;
+        try {
+            throw std::runtime_error("To create Driver, we need to supply an error stepper or a regular stepper, not a controlled stepper!");
+        } catch (std::exception &e) {
+            std::cerr << e.what() << std::endl;
+        }
     }
 
     // For non-controlled steppers

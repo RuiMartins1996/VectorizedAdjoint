@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     // System size
     int Nin = 2;
     // Number of cost functions
-    int Nout = 3; //! DEBUG
+    int Nout = 1;
     // Number of parameters
     int Npar = 1;
 
@@ -62,21 +62,11 @@ int main(int argc, char *argv[])
 
     auto lambda = std::vector(Nout, std::vector<double>(Nin));
 
-    // lambda[0][0] = 1.0 * r0[0]; // dE(t_f)dx(t_f) = k * x(t_f)
-    // lambda[0][1] = 1.0 * r0[1]; // dE(t_f)dv(t_f) = m * v(t_f)
-
-    //! DEBUG
-    lambda[0][0] = 1.0;         // x(t_f)
-    lambda[0][1] = 0.0;         //
-    lambda[1][0] = 0.0;         //
-    lambda[1][1] = 1.0;         // v(t_f)
-    lambda[2][0] = 1.0 * r0[0]; // dE(t_f)dx(t_f) = k * x(t_f);
-    lambda[2][1] = 1.0 * r0[1]; // dE(t_f)dv(t_f) = m * v(t_f);
+    lambda[0][0] = 1.0 * r0[0]; // dE(t_f)dx(t_f) = k * x(t_f)
+    lambda[0][1] = 1.0 * r0[1]; // dE(t_f)dv(t_f) = m * v(t_f)
 
     auto muadj = std::vector(Nout, std::vector<double>(Npar));
     muadj[0][0] = 0.0; // dE(t_f)d\mu = 0.0
-    muadj[1][0] = 0.0;
-    muadj[2][0] = 0.0;
 
     // Set derivatives of cost functions w.r.t ODE solution and w.r.t. parameters
     setCostGradients(driver, lambda, muadj);
@@ -89,15 +79,9 @@ int main(int argc, char *argv[])
     // Reverse pass to obtain the adjoints of the cost functions
     backpropagation::adjointSolve(driver, mu);
 
-    std::cout << "dEdmr:" << lambda[2][0] << std::endl;
-    std::cout << "dEdmv:" << lambda[2][1] << std::endl;
+    std::cout << "dEdmr:" << lambda[0][0] << std::endl;
+    std::cout << "dEdmv:" << lambda[0][1] << std::endl;
     std::cout << "dEdmu:" << muadj[0][0] << std::endl;
-
-    for (int i = 0; i < Nout; i++) {
-        for (int j = 0; j < Nin; j++) {
-            std::cout << "lambda[" << i << "][" << j << "] = " << lambda[i][j] << std::endl;
-        }
-    }
 
     return EXIT_SUCCESS;
 }
