@@ -10,7 +10,7 @@
 namespace ublas = boost::numeric::ublas;
 namespace odeint = boost::numeric::odeint;
 
-namespace backpropagation
+namespace vectorizedadjoint
 {
 
 // Computes the adjoints of the cost functions (the total derivatives of the cost function with respect to the initial conditions and with respect to the parameters)
@@ -89,7 +89,7 @@ auto computeSensitivityMatrix(Driver &driver, const State &parameters)
 // With observer
 /*
 template <class Stepper, class System, class State, class Time, class Observer>
-size_t backpropagation(
+size_t vectorizedadjoint(
     Stepper stepper, System system, State &start_state,
     State &parameters, Time start_time, Time end_time,
     Time dt, Time AbsTol, Time RelTol, Observer observer)
@@ -97,7 +97,7 @@ size_t backpropagation(
     typedef typename odeint::unwrap_reference<Stepper>::type::stepper_category
         stepper_category;
 
-    return detail::backpropagation(
+    return detail::vectorizedadjoint(
         stepper, system, start_state, parameters,
         start_time, end_time, dt, AbsTol, RelTol,
         observer, stepper_category());
@@ -105,7 +105,7 @@ size_t backpropagation(
 
 // Without observer
 template <class Stepper, class System, class State, class Time>
-size_t backpropagation(
+size_t vectorizedadjoint(
     Stepper stepper, System system, State &start_state,
     State &parameters, Time start_time, Time end_time,
     Time dt, Time AbsTol, Time RelTol)
@@ -113,7 +113,7 @@ size_t backpropagation(
     typedef typename odeint::unwrap_reference<Stepper>::type::stepper_category
         stepper_category;
 
-    return detail::backpropagation(
+    return detail::vectorizedadjoint(
         stepper, system, start_state, parameters,
         start_time, end_time, dt, AbsTol, RelTol,
         boost::numeric::odeint::null_observer(),
@@ -121,6 +121,6 @@ size_t backpropagation(
 }
 */
 
-} // end namespace backpropagation
+} // end namespace vectorizedadjoint
 
 #endif

@@ -5,6 +5,7 @@
 #include "../../lib/include/lib.hpp"
 
 using namespace boost::numeric::odeint;
+using namespace vectorizedadjoint;
 
 // Define an observer to act as a logger to console
 class Observer
@@ -113,7 +114,7 @@ int main(int argc, char *argv[])
     // Record RHS function with automatic differentiation
     recordDriverRHSFunction(driver, vdp);
 
-    backpropagation::adjointSolve(driver, mu);
+    adjointSolve(driver, mu);
 
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < Npar; j++) {

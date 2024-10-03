@@ -1,3 +1,3 @@
-Tutorial for sensitivity analysis of a generalized Lotka-Volterra system
+Generalized Lotka-Volterra system
 =========================================================================
 TODO

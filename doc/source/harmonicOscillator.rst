@@ -1,12 +1,22 @@
-Tutorial for sensitivity analysis of an harmonic oscillator
+Damped Harmonic Oscillator
 ============================================================
 
-Introduction
+Objective
 ------------
-This tutorial demonstrates how to perform sensitivity analysis of 
-a damped harmonic oscillator using the library provided by this repository.
+To find how the mechanical energy at :math:`t = t_f` varies with respect to the initial conditions and the damping coefficient.
 
-The model can be described by the following system of ODEs:
+Model
+------------
+A damped harmonic oscillator can be described by the following second-order linear ordinary differential equation:
+
+.. math:: 
+    m\ddot{x} + \mu\dot{x} + kx = 0
+
+where :math:`x` is the displacement relative to the equilibrium position, :math:`m` is the mass, :math:`\mu` is the damping coefficient and :math:`k` is the spring constant.
+
+In this example, we will take :math:`k = 1 \text{ }(N/m)` as a constant parameter and :math:`m = 1 \text{ }(kg)` as the mass. 
+
+This equation can be cast into the following system of ODEs:
 
 .. math::
    \begin{bmatrix}
@@ -14,19 +24,23 @@ The model can be described by the following system of ODEs:
 	   \dot{v}
    \end{bmatrix}
    =
+    f(\begin{bmatrix}x\\v\end{bmatrix},\mu,t)
+   =
    \begin{bmatrix}
 	   v\\
 	   -kx - \mu v
    \end{bmatrix},
 
-where :math:`x` is the displacement relative to the equilibrium position, :math:`v` is the velocity, :math:`k` is the spring constant and :math:`\mu` is the damping coefficient.
+where :math:`v` is the velocity. 
 
-Define the ODE system
+The mechanical energy of the oscillator at a given time :math:`t` is given by:
+
+.. math::
+    E(t) = \frac{1}{2}kx(t)^2 + \frac{1}{2}mv(t)^2
+
+Data Types 
 --------------------------------
-Mathematically, the state of the ODE system is an :math:`n`-dimensional vector of real or complex numbers (this library only supports real numbers).
-In this library, the state of the system is represented by the :code:`std::vector<T>` container type, where :code:`T` is a template parameter.
-
-The ODE system is assumed to be in the form :math:`\dot{\mathbf{r}}(t) = f(\mathbf{r},\alpha,t)`, where :math:`\mathbf{r}` is the state vector, :math:`\alpha` is the parameter vector and :math:`t` is the time. We will assume that :math:`k = 1`, so: 
+Mathematically, the state of a (real valued) ODE system is a :math:`\mathbb{R}^N` vector. In this library, toth state of the system and the parameter vector are represented by the :code:`std::vector<double>` container type. In this example, the state vector and the parameter vector are:
 
 .. math::
     \mathbf{r} =
@@ -40,7 +54,11 @@ The ODE system is assumed to be in the form :math:`\dot{\mathbf{r}}(t) = f(\math
         \mu
     \end{bmatrix}
 
-The ODE system is defined by defining a functor that implements the right hand side :math:`f` with the ()-operator with a specific signature:
+time is represented by a scalar of type :code:`double`.
+
+Definition of the ODE system 
+--------------------------------
+A functor that implements the right hand side of the ODE system, :math:`f(\cdot,\cdot,\cdot)`, with the ()-operator has to be defined:
 
 .. code-block:: cpp
 
@@ -60,9 +78,11 @@ The ODE system is defined by defining a functor that implements the right hand s
         }
     };
 
-Notice how parameters that we don't wish to differentiate with respect to can be defined as class attributes (:code:`double k = 1.0`), while the parameters we wish to differentiate with respect to are passed to the ()-operator as :code:`std::vector<T> &mu`.
+The library expects the ()-operator of the user defined functor to have a specific signature, which is shown in the code above, indepedently of the model being considered.
 
-The signature of the ()-operator must always be the same as it is shown in the code above. The ()-operator must be templated to allow the definition of the system function only once, since a version of the system function with :code:`T = double` is needed by the stepper and a version with :code:`T = idouble` is need by the AADC library to record the rhs with automatic differentiation. It is also possible to define two versions of the functor, one for :code:`T = double` and another for :code:`T = idouble` and pass each version to the correct place. This, however, is uglier code.
+Notice how parameters that we don't wish to differentiate w.r.t. can be defined as class attributes (:code:`double k = 1.0`), while the parameters we wish to differentiate w.r.t. are passed to the ()-operator in :code:`std::vector<T> &mu`.
+
+The ()-operator should be templated to allow the user to define a single version of the system function, since a version with :code:`T = double` is needed by the stepper and a version with :code:`T = idouble` is need by the AADC library to record the rhs with automatic differentiation. It is also possible to define two versions of the functor, one for :code:`T = double` and another for :code:`T = idouble` and pass each version to the correct place. This, however, is uglier code.
 
 Define the Stepper Type
 --------------------------------
@@ -70,18 +90,18 @@ This library uses the :code:`boost::numeric::odeint` steppers to solve the ODE s
 
 .. code-block:: cpp
 
+    using namespace boost::numeric::odeint;
     typedef odeint::runge_kutta4<std::vector<double>> stepper_type;
 
-In this example we are using a constant step stepper, the classic 4th-ordr Runge-Kutta method.
+In this example we are using a constant time step stepper, the classic 4th-order Runge-Kutta method. More details about steppers can be found in the `boost documentation <https://live.boost.org/doc/libs/1_82_0/libs/numeric/odeint/doc/html/boost_numeric_odeint/odeint_in_detail/steppers.html>`_.
+
+
+
+
 
 Performing sensitivity analysis
 --------------------------------
-Assume that we wish to find the sensitivities of the mechanical energy of the harmonic oscillator at :math:`t = t_f` with respect to the initial conditions :math:`\left[x(t_i),v(t_i)\right]^T` and damping coefficient :math:`\mu`. The mechanical energy, which is the objective function, is given by:
-
-.. math::
-    E(t_f) = \frac{1}{2}kx(t_f)^2 + \frac{1}{2}mv(t_f)^2
-
-where :math:`m = 1.0`. 
+We wish to find the sensitivities of the mechanical energy at :math:`t = t_f` w.r.t. the initial conditions :math:`x(t_i),v(t_i)` and damping coefficient :math:`\mu`. 
 
 We need to create an instance of the :code:`Driver` class,
 
@@ -96,7 +116,7 @@ We need to create an instance of the :code:`Driver` class,
 
    Driver driver(Nin, Nout, Npar);
 
-which is the construct that stores the trajectory of the ODE system. 
+which is the construct that stores the trajectory of the ODE system and some system characteristics.
 
 Forward Pass
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -110,12 +130,13 @@ We need to set the initial conditions, initial and final time, time step and the
     std::vector<double> mu = {0.15};
     std::vector<double> r0 = {0.0, 1.0};
 
-For this choice of damping coefficient, the harmonic oscillator is underdamped. We then solve the ODE by doing a forward pass,
+We solve the ODE by performing a forward pass,
 
 .. code-block:: 
 
     // Create a stepper instance
     stepper_type stepper;
+
     // Create the system function instance
     auto hm = HarmonicOscillator();
 
@@ -126,7 +147,7 @@ and the solution is stored in :code:`r0`.
 
 Reverse Pass
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-We set the partial derivatives of the cost function with respect to the state vector solution of the ODE (:math:`\left[x(t_f),v(t_f)\right]^T`) and with respect to the parameter :math:`\mu`,
+We set the partial derivatives of the cost function :math:`È(t_f)` with respect to the state vector solution of the ODE (:math:`\left[x(t_f),v(t_f)\right]^T`) and with respect to the parameter :math:`\mu`,
 
 .. code-block:: cpp
 
@@ -140,25 +161,25 @@ We set the partial derivatives of the cost function with respect to the state ve
     // Set derivatives of cost functions w.r.t ODE solution and w.r.t. parameters
     setCostGradients(driver, lambda, muadj);
 
-Additionally, we need to inform the driver of the chosen stepper'same Butcher Tableau,
+Additionally, we need to inform the driver of the chosen stepper's Butcher Tableau,
 
 .. code-block:: 
 
     constructDriverButcherTableau(driver, stepper);
 
-and to record the rhs function with automatic differentiation,
+and to record the rhs function with automatic differentiation (currently, an hand-written alternative has not been implemented),
 
 .. code-block:: 
 
     recordDriverRHSFunction(driver, hm);
 
 
-we perform a reverse pass by doing:
+We perform a reverse pass by doing:
 
 .. code-block::
 
     // Reverse pass to obtain the adjoints of the cost functions
-    backpropagation::adjointSolve(driver, mu);
+    adjointSolve(driver, mu);
 
 The sensitivities are stored in :code:`lambda` and :code:`muadj`.
 

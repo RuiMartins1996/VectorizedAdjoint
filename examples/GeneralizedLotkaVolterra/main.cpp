@@ -15,6 +15,7 @@
 #include "../../lib/include/runge_kutta.hpp"
 
 using namespace boost::numeric::odeint;
+using namespace vectorizedadjoint;
 
 namespace fs = std::filesystem;
 
@@ -208,7 +209,7 @@ int main(int argc, char *argv[])
     // Set derivatives of cost functions w.r.t ODE solution and w.r.t. parameters
     setCostGradients(driver, lambda, muDerivative);
     // Reverse pass to obtain the adjoints of the cost functions
-    backpropagation::adjointSolve(driver, alphas);
+    vectorizedadjoint::adjointSolve(driver, alphas);
     */
 
     // Inform driver of stepper butcher tableau, needed for reverse pass
@@ -217,7 +218,7 @@ int main(int argc, char *argv[])
     recordDriverRHSFunction(driver, lotka);
 
     auto tadji = std::chrono::high_resolution_clock::now();
-    auto J = backpropagation::computeSensitivityMatrix(driver, alphas);
+    auto J = computeSensitivityMatrix(driver, alphas);
     auto tadjf = std::chrono::high_resolution_clock::now();
 
     start = std::chrono::time_point_cast<std::chrono::microseconds>(tadji).time_since_epoch().count();

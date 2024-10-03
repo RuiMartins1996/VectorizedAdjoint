@@ -15,7 +15,7 @@
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorial for sensitivity analysis of an harmonic oscillator" href="harmonicOscillator.html" />
+    <link rel="next" title="Damped Harmonic Oscillator" href="harmonicOscillator.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -35,24 +35,33 @@
             
   <section id="main-page">
 <h1>Main Page<a class="headerlink" href="#main-page" title="Link to this heading">¶</a></h1>
-<p>This is the main page. Below are links to documentation regarding the examples. They should be followed in order.</p>
+<p>This is the main page. Below are links to documentation regarding the examples organized by name. They should be followed in order.</p>
+<p>The tutorials will demonstrate how to perform sensitivity analysis of several models using the library provided by this repository.</p>
+<p>We will be considering problems where we have an ODE system given in the form</p>
+<div class="math notranslate nohighlight">
+\[\dot{\mathbf{x}}(t) = f(\mathbf{x},\alpha,t)`\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> is the state vector, <span class="math notranslate nohighlight">\(\alpha\)</span> is the parameter vector and <span class="math notranslate nohighlight">\(t\)</span> is the time.</p>
+<p>All the library function and classes are contained within the <code class="code docutils literal notranslate"><span class="pre">vectorizedadjoint</span></code> namespace.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="harmonicOscillator.html">Tutorial for sensitivity analysis of an harmonic oscillator</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="harmonicOscillator.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="harmonicOscillator.html#define-the-ode-system">Define the ODE system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="harmonicOscillator.html">Damped Harmonic Oscillator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="harmonicOscillator.html#objective">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="harmonicOscillator.html#model">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="harmonicOscillator.html#data-types">Data Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="harmonicOscillator.html#definition-of-the-ode-system">Definition of the ODE system</a></li>
 <li class="toctree-l2"><a class="reference internal" href="harmonicOscillator.html#define-the-stepper-type">Define the Stepper Type</a></li>
 <li class="toctree-l2"><a class="reference internal" href="harmonicOscillator.html#performing-sensitivity-analysis">Performing sensitivity analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="vanderpol.html">Tutorial for sensitivity analysis of the van der Pol oscillator</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="vanderpol.html">Van Der Pol oscillator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vanderpol.html#objective">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vanderpol.html#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vanderpol.html#using-an-adaptive-stepper">Using an adaptive Stepper</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vanderpol.html#performing-sensitivity-analysis">Performing sensitivity analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="generalizedLotkaVolterra.html">Tutorial for sensitivity analysis of a generalized Lotka-Volterra system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generalizedLotkaVolterra.html">Generalized Lotka-Volterra system</a></li>
 </ul>
 </div>
 </section>
@@ -85,16 +94,16 @@
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="harmonicOscillator.html">Tutorial for sensitivity analysis of an harmonic oscillator</a></li>
-<li class="toctree-l1"><a class="reference internal" href="vanderpol.html">Tutorial for sensitivity analysis of the van der Pol oscillator</a></li>
-<li class="toctree-l1"><a class="reference internal" href="generalizedLotkaVolterra.html">Tutorial for sensitivity analysis of a generalized Lotka-Volterra system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="harmonicOscillator.html">Damped Harmonic Oscillator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vanderpol.html">Van Der Pol oscillator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generalizedLotkaVolterra.html">Generalized Lotka-Volterra system</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="#">Documentation overview</a><ul>
-      <li>Next: <a href="harmonicOscillator.html" title="next chapter">Tutorial for sensitivity analysis of an harmonic oscillator</a></li>
+      <li>Next: <a href="harmonicOscillator.html" title="next chapter">Damped Harmonic Oscillator</a></li>
   </ul></li>
 </ul>
 </div>

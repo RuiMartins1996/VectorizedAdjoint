@@ -5,6 +5,7 @@
 #include "../../lib/include/lib.hpp"
 
 using namespace boost::numeric::odeint;
+using namespace vectorizedadjoint;
 
 // System functor for the VanDerPol oscillator
 class HarmonicOscillator
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
     recordDriverRHSFunction(driver, hm);
 
     // Reverse pass to obtain the adjoints of the cost functions
-    backpropagation::adjointSolve(driver, mu);
+    adjointSolve(driver, mu);
 
     std::cout << "dEdmr:" << lambda[0][0] << std::endl;
     std::cout << "dEdmv:" << lambda[0][1] << std::endl;

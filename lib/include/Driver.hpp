@@ -9,7 +9,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 
-namespace lib
+namespace vectorizedadjoint
 {
 
 class Driver
@@ -113,6 +113,6 @@ void setCostGradients(Driver &driver, std::vector<std::vector<double>> &lambda, 
     // driver.p_mu = std::move(std::make_unique<std::vector<std::vector<double>>>(mu));
 }
 
-} // namespace lib
+} // namespace vectorizedadjoint
 
 #endif

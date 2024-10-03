@@ -16,9 +16,7 @@
 // #include "OdeDriver.hpp"
 #include "Driver.hpp"
 
-using namespace lib;
-
-namespace backpropagation
+namespace vectorizedadjoint
 {
 namespace detail
 {
@@ -436,6 +434,6 @@ auto computeSensitivityMatrix(Driver &driver, const State &parameters)
 };
 
 } // namespace detail
-} // namespace backpropagation
+} // namespace vectorizedadjoint
 
 #endif

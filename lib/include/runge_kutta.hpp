@@ -11,6 +11,8 @@
 namespace ublas = boost::numeric::ublas;
 namespace odeint = boost::numeric::odeint;
 
+namespace vectorizedadjoint
+{
 // With observer
 template <class Stepper, class System, class State, class Time, class Observer>
 size_t runge_kutta(
@@ -56,4 +58,5 @@ size_t runge_kutta(
         boost::numeric::odeint::null_observer(), stepper_category());
 };
 
+} // namespace vectorizedadjoint
 #endif

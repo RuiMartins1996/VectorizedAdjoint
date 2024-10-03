@@ -12,6 +12,8 @@
 namespace ublas = boost::numeric::ublas;
 namespace odeint = boost::numeric::odeint;
 
+namespace vectorizedadjoint
+{
 namespace detail_runge_kutta
 {
 
@@ -50,7 +52,7 @@ size_t runge_kutta(
     Time time = start_time;
     int step = 0;
     // cast time+dt explicitely in case of expression templates (e.g. multiprecision)
-    while (detail::less_eq_with_sign(static_cast<Time>(time + dt), end_time, dt)) {
+    while (boost::numeric::odeint::detail::less_eq_with_sign(static_cast<Time>(time + dt), end_time, dt)) {
         obs(start_state, time);
         driver.PushBackTime(time);
         driver.PushBackState(start_state);
@@ -116,5 +118,5 @@ size_t runge_kutta(
 }
 
 } // namespace detail_runge_kutta
-
+} // namespace vectorizedadjoint
 #endif
