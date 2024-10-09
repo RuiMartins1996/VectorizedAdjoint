@@ -5,7 +5,7 @@ Released July 15, 2024
 Description:
 ============================================================
 VectorizedAdjoint is a C++ library that implements discrete adjoint sensitivity analysis for systems of parameter dependent ordinary differential equations solved using explicit adaptive Runge-Kutta methods. 
-VectorizedAdjoint leverages vectorization and automatic differentiation to accelerate the computations.
+VectorizedAdjoint leverages SIMD vectorization and automatic differentiation to accelerate the computations.
 VectorizedAdjoint has been tested with the gcc compiler.
 
 Structure:
