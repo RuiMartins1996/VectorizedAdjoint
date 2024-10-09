@@ -27,7 +27,8 @@ VectorizedAdjoint implementation requires boot::numeric::odeint, a library for o
 
 Usage:
 ============================================================
-For usage of VectorizedAdjoint, please refer to the user's guide, as well as the example programs containing drivers and makefiles which can be used as templates. If you are on Ubuntu, to run the user's guide in your default browser you can do:  
+For usage of VectorizedAdjoint, please refer to the user's guide, as well as the example programs containing drivers and makefiles which can be used as templates. If you are on Ubuntu, to run the user's guide in your default browser you can do: 
+
     cd doc/build/html
     xdg-open index.html
 If this does not work you can try navigating to the indicated folder and drag and drop the index.html file on your preferred browser.
