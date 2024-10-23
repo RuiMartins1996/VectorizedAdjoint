@@ -51,7 +51,8 @@ Future work:
 ============================================================
 * Implement second-order discrete adjoint method 
 * Implement other kinds of steppers, including implicit steppers.
-* Generalize for differential-algebraic equations 
+* Generalize for differential-algebraic equations
+* Create a Matlab or Python API
 
 Personal note:
 ============================================================
