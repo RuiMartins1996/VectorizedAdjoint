@@ -17,6 +17,7 @@ VectorizedAdjoint contains the following directory structure:
     VectorizedAdjoint/lib           library implementation
     VectorizedAdjoint/examples      example programs
     VectorizedAdjoint/doc           user's guide
+    VectorizedAdjoint/data          programas to reproduce the figures in the publication
 
 Dependencies:
 ============================================================
@@ -24,6 +25,8 @@ VectorizedAdjoint implementation requires boot::numeric::odeint, a library for o
 
     sudo apt update
     sudo apt install libboost-all-dev
+
+In the case of the programs in VectorizedAdjoint/data, we list their specific dependencies on each folder.
 
 Usage:
 ============================================================
