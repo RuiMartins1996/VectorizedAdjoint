@@ -49,5 +49,5 @@ endif()
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC aadc)
 
 # Link Boost (assuming it's required for the project)
-find_package(Boost REQUIRED)
+find_package(Boost CONFIG REQUIRED)
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC Boost::boost)
