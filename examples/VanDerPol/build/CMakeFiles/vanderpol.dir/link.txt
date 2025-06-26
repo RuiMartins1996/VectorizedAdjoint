@@ -1,1 +1,1 @@
-/usr/bin/c++  -mavx2 -Wno-ignored-attributes -rdynamic CMakeFiles/vanderpol.dir/main.cpp.o -o vanderpol  -Wl,-rpath,/home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../aadc/lib ../../../aadc/lib/libaadc.so 
+/usr/bin/c++  -mavx2 -Wno-ignored-attributes -rdynamic CMakeFiles/vanderpol.dir/main.cpp.o -o vanderpol  -Wl,-rpath,/home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../aadc/lib /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../aadc/lib/libaadc.so

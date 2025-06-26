@@ -18,7 +18,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mavx2 -Wno-ignored-attr
 # Build the executable
 add_executable(${EXECUTABLE_NAME} ${SOURCES})
 
-# Include directories for MyLib (assuming it's in the parent directory)
+# Include directories for lib (assuming it's in the parent directory)
 include_directories(${CMAKE_SOURCE_DIR}/../../lib/include)
 
 # Include directories for AADC (assuming it's in the parent directory)
