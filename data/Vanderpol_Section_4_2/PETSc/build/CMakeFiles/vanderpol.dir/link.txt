@@ -1,0 +1,1 @@
+/home/rui/petsc-hash-pkgs/c8e541d/bin/mpicc CMakeFiles/vanderpol.dir/src/vanderpol.c.o -o vanderpol  -Wl,-rpath,/home/rui/petsc/arch-ci-linux-gcc-pkgs-opt/lib /home/rui/petsc/arch-ci-linux-gcc-pkgs-opt/lib/libpetsc.so 

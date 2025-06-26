@@ -1,0 +1,4 @@
+/home/rui/Desktop/Article/Vanderpol/PETSc/build/CMakeFiles/vanderpol.dir
+/home/rui/Desktop/Article/Vanderpol/PETSc/build/CMakeFiles/test.dir
+/home/rui/Desktop/Article/Vanderpol/PETSc/build/CMakeFiles/edit_cache.dir
+/home/rui/Desktop/Article/Vanderpol/PETSc/build/CMakeFiles/rebuild_cache.dir
