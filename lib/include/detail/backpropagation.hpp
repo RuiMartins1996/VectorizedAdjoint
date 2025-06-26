@@ -14,7 +14,7 @@
 #include <boost/type_traits/is_same.hpp>
 
 // #include "OdeDriver.hpp"
-#include "Driver.hpp"
+#include "../Driver.hpp"
 
 namespace vectorizedadjoint
 {

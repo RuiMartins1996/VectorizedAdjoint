@@ -7,7 +7,7 @@
 #include <boost/numeric/odeint/util/detail/less_with_sign.hpp>
 #include <boost/numeric/odeint/util/unwrap_reference.hpp>
 
-#include "Driver.hpp"
+#include "../Driver.hpp"
 
 namespace ublas = boost::numeric::ublas;
 namespace odeint = boost::numeric::odeint;
