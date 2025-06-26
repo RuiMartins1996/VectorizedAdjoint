@@ -45,7 +45,7 @@ How to build the examples:
 
 Link to preprint:
 ============================================================
-Here is a [link](http://www.example.com) to the Arxiv preprint of the article regarding the development of this library and the introduction of SIMD vectorization in the discrete adjoint sensitivity analysis algorithm. 
+Here is a [link](https://arxiv.org/abs/2410.01911) to the Arxiv preprint of the article regarding the development of this library and the introduction of SIMD vectorization in the discrete adjoint sensitivity analysis algorithm. 
 
 Future work:
 ============================================================
