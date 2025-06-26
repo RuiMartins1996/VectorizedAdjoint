@@ -1,6 +1,0 @@
-/home/rui/Desktop/VectorizedAdjoint/lib/build/CMakeFiles/edit_cache.dir
-/home/rui/Desktop/VectorizedAdjoint/lib/build/CMakeFiles/rebuild_cache.dir
-/home/rui/Desktop/VectorizedAdjoint/lib/build/CMakeFiles/list_install_components.dir
-/home/rui/Desktop/VectorizedAdjoint/lib/build/CMakeFiles/install.dir
-/home/rui/Desktop/VectorizedAdjoint/lib/build/CMakeFiles/install/local.dir
-/home/rui/Desktop/VectorizedAdjoint/lib/build/CMakeFiles/install/strip.dir

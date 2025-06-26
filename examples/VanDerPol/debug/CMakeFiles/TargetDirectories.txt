@@ -1,3 +1,0 @@
-/home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/debug/CMakeFiles/vanderpol.dir
-/home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/debug/CMakeFiles/edit_cache.dir
-/home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/debug/CMakeFiles/rebuild_cache.dir

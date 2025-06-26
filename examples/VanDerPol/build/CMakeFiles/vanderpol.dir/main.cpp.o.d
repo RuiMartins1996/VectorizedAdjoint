@@ -1640,8 +1640,8 @@ CMakeFiles/vanderpol.dir/main.cpp.o: \
  /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/lib.hpp \
  /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/backpropagation.hpp \
  /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/detail/backpropagation.hpp \
- /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/Driver.hpp \
- /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/AadData.hpp \
+ /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/detail/../Driver.hpp \
+ /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/detail/../AadData.hpp \
  /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../aadc/include/aadc/aadc.h \
  /usr/include/c++/13/chrono /usr/include/c++/13/map \
  /usr/include/c++/13/bits/stl_tree.h /usr/include/c++/13/bits/stl_map.h \
@@ -1799,7 +1799,7 @@ CMakeFiles/vanderpol.dir/main.cpp.o: \
  /usr/include/boost/move/detail/meta_utils.hpp \
  /usr/include/boost/move/detail/meta_utils_core.hpp \
  /usr/include/boost/move/detail/addressof.hpp \
- /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/ButcherTable.hpp \
- /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/StateStorage.hpp \
+ /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/detail/../ButcherTable.hpp \
+ /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/detail/../StateStorage.hpp \
  /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/runge_kutta.hpp \
  /home/rui/Desktop/VectorizedAdjoint/examples/VanDerPol/../../lib/include/detail/runge_kutta.hpp
