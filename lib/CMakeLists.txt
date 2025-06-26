@@ -41,7 +41,7 @@ target_include_directories(backpropagation INTERFACE
 )
 
 # Link Boost to the library
-find_package(Boost 1.74.0 REQUIRED)
+find_package(Boost CONFIG REQUIRED)
 target_link_libraries(backpropagation INTERFACE Boost::boost)
 
 # Link aadc library
