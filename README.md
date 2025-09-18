@@ -43,9 +43,9 @@ How to build the examples:
     make
     ./executable_name <command_line_arguments>
 
-Link to preprint:
+Link to publication:
 ============================================================
-Here is a [link](https://arxiv.org/abs/2410.01911) to the Arxiv preprint of the article regarding the development of this library and the introduction of SIMD vectorization in the discrete adjoint sensitivity analysis algorithm. 
+Here is a [link](https://www.sciencedirect.com/science/article/pii/S0096300325004254) to the publication of the article regarding the development of this library and the introduction of SIMD vectorization in the discrete adjoint sensitivity analysis algorithm. 
 
 Future work:
 ============================================================
